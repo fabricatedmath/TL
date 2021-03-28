@@ -447,28 +447,37 @@ sha256_chunk0(C16(COMMA,EMPTY),H8(COMMA,EMPTY))
 //
 // SPECIALIZED ITERATE HASHING
 //
+// See https://en.wikipedia.org/wiki/SHA-2#Pseudocode
+//
 KERNEL_QUALIFIERS
 LAUNCH_BOUNDS
 void
 sha256_iter(const int iter, const beu32* const d_in, beu32* const d_out)
 {
   const int offset = 0;
+  
+  // Don't need initial hash values h0 through h7, results stored directly in bytes 0-7 of w
 
   #undef T
   #define T(i) beu32 w##i = d_in[offset+i];
 
   T8(EMPTY,EMPTY);
 
+  // Bytes 8-15 of w can be constants because they encode padding for the 
+  // fixed size of 256 bytes instead of the full 512 byte chunks
+  
   #undef B
   #define B(i,hex) const beu32 w##i = hex;
 
   B8(EMPTY,EMPTY);
+  
+  // Storing hash back into w to iterate again directly
 
   for(int count = 0; count < iter; count++) 
   {
-      //
-      // INIT W REGISTERS 16-63
-      //
+    //
+    // INIT W REGISTERS 16-63
+    //
     #undef  R
     #define R(i,m16,m15,m7,m2,magic)                                \
         const beu32 w##i = w##m16 +                                 \
@@ -478,14 +487,16 @@ sha256_iter(const int iter, const beu32* const d_in, beu32* const d_out)
 
       R48(EMPTY,EMPTY);
 
+    // Initialize working variables from hash constants directly
+    
     #undef H
     #define H(i,alpha,magic) beu32 alpha = magic;
 
     H8(EMPTY,EMPTY);
 
-      //
-      // MAIN LOOP
-      //
+    //
+    // MAIN LOOP
+    //
     #undef  W
     #define W(i,m16,m15,m7,m2,magic)                        \
       {                                                     \
@@ -503,6 +514,8 @@ sha256_iter(const int iter, const beu32* const d_in, beu32* const d_out)
       }
 
       W64(EMPTY,EMPTY);
+      
+      // Store working values directly into w because we only have 1 chunk
 
       #undef H
       #define H(i,alpha,magic) w##i = magic + alpha;
