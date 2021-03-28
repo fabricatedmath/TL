@@ -1,7 +1,5 @@
-// -*- compile-command: "nvcc -m 32 -arch sm_35 -Xptxas=-v,-abi=no -cubin sha256.cu"; -*-
-
 //
-// Copyright 2013 Allan MacKinnon <allanmac@alum.mit.edu>
+// Copyright 2021 Charles Durham <cpdurham@protonmail.com>, Copyright 2013 Allan MacKinnon <allanmac@alum.mit.edu>
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -25,6 +23,8 @@
 //
 
 #include <cuda.h>
+#include <iostream>
+using namespace std;
 
 #define WARP_SIZE                    32
 
@@ -169,6 +169,86 @@ typedef unsigned int beu32;
   C(13)   notLast                             \
   C(14)   notLast                             \
   C(15)   last
+
+//
+// W TOP 8 INPUT
+//
+#define T8(notLast,last)                      \
+  T(0 )   notLast                             \
+  T(1 )   notLast                             \
+  T(2 )   notLast                             \
+  T(3 )   notLast                             \
+  T(4 )   notLast                             \
+  T(5 )   notLast                             \
+  T(6 )   notLast                             \
+  T(7 )   last                                \
+
+
+//
+// W BOTTOM 8 INPUT
+//
+#define B8(notLast,last)                      \
+  B(8 , 0x80000000)   notLast                 \
+  B(9 , 0x00000000)   notLast                 \
+  B(10, 0x00000000)   notLast                 \
+  B(11, 0x00000000)   notLast                 \
+  B(12, 0x00000000)   notLast                 \
+  B(13, 0x00000000)   notLast                 \
+  B(14, 0x00000000)   notLast                 \
+  B(15, 0x00000100)   last                    \
+
+//
+// W REST 48 INPUT
+//
+#define R48(notLast,last)                        \
+  R(16,0  ,1  ,9  ,14, 0xe49b69c1)   notLast     \
+  R(17,1  ,2  ,10 ,15, 0xefbe4786)   notLast     \
+  R(18,2  ,3  ,11 ,16, 0x0fc19dc6)   notLast     \
+  R(19,3  ,4  ,12 ,17, 0x240ca1cc)   notLast     \
+  R(20,4  ,5  ,13 ,18, 0x2de92c6f)   notLast     \
+  R(21,5  ,6  ,14 ,19, 0x4a7484aa)   notLast     \
+  R(22,6  ,7  ,15 ,20, 0x5cb0a9dc)   notLast     \
+  R(23,7  ,8  ,16 ,21, 0x76f988da)   notLast     \
+  R(24,8  ,9  ,17 ,22, 0x983e5152)   notLast     \
+  R(25,9  ,10 ,18 ,23, 0xa831c66d)   notLast     \
+  R(26,10 ,11 ,19 ,24, 0xb00327c8)   notLast     \
+  R(27,11 ,12 ,20 ,25, 0xbf597fc7)   notLast     \
+  R(28,12 ,13 ,21 ,26, 0xc6e00bf3)   notLast     \
+  R(29,13 ,14 ,22 ,27, 0xd5a79147)   notLast     \
+  R(30,14 ,15 ,23 ,28, 0x06ca6351)   notLast     \
+  R(31,15 ,16 ,24 ,29, 0x14292967)   notLast     \
+  R(32,16 ,17 ,25 ,30, 0x27b70a85)   notLast     \
+  R(33,17 ,18 ,26 ,31, 0x2e1b2138)   notLast     \
+  R(34,18 ,19 ,27 ,32, 0x4d2c6dfc)   notLast     \
+  R(35,19 ,20 ,28 ,33, 0x53380d13)   notLast     \
+  R(36,20 ,21 ,29 ,34, 0x650a7354)   notLast     \
+  R(37,21 ,22 ,30 ,35, 0x766a0abb)   notLast     \
+  R(38,22 ,23 ,31 ,36, 0x81c2c92e)   notLast     \
+  R(39,23 ,24 ,32 ,37, 0x92722c85)   notLast     \
+  R(40,24 ,25 ,33 ,38, 0xa2bfe8a1)   notLast     \
+  R(41,25 ,26 ,34 ,39, 0xa81a664b)   notLast     \
+  R(42,26 ,27 ,35 ,40, 0xc24b8b70)   notLast     \
+  R(43,27 ,28 ,36 ,41, 0xc76c51a3)   notLast     \
+  R(44,28 ,29 ,37 ,42, 0xd192e819)   notLast     \
+  R(45,29 ,30 ,38 ,43, 0xd6990624)   notLast     \
+  R(46,30 ,31 ,39 ,44, 0xf40e3585)   notLast     \
+  R(47,31 ,32 ,40 ,45, 0x106aa070)   notLast     \
+  R(48,32 ,33 ,41 ,46, 0x19a4c116)   notLast     \
+  R(49,33 ,34 ,42 ,47, 0x1e376c08)   notLast     \
+  R(50,34 ,35 ,43 ,48, 0x2748774c)   notLast     \
+  R(51,35 ,36 ,44 ,49, 0x34b0bcb5)   notLast     \
+  R(52,36 ,37 ,45 ,50, 0x391c0cb3)   notLast     \
+  R(53,37 ,38 ,46 ,51, 0x4ed8aa4a)   notLast     \
+  R(54,38 ,39 ,47 ,52, 0x5b9cca4f)   notLast     \
+  R(55,39 ,40 ,48 ,53, 0x682e6ff3)   notLast     \
+  R(56,40 ,41 ,49 ,54, 0x748f82ee)   notLast     \
+  R(57,41 ,42 ,50 ,55, 0x78a5636f)   notLast     \
+  R(58,42 ,43 ,51 ,56, 0x84c87814)   notLast     \
+  R(59,43 ,44 ,52 ,57, 0x8cc70208)   notLast     \
+  R(60,44 ,45 ,53 ,58, 0x90befffa)   notLast     \
+  R(61,45 ,46 ,54 ,59, 0xa4506ceb)   notLast     \
+  R(62,46 ,47 ,55 ,60, 0xbef9a3f7)   notLast     \
+  R(63,47 ,48 ,56 ,61, 0xc67178f2)   last
 
 //
 // NOT AND
@@ -363,6 +443,78 @@ sha256_chunk0(C16(COMMA,EMPTY),H8(COMMA,EMPTY))
   sha256_chunk(C16(COMMA,EMPTY),H8(COMMA,EMPTY));
 }
 
+////////////////////////////////////////////////////////////////////////
+//
+// SPECIALIZED ITERATE HASHING
+//
+KERNEL_QUALIFIERS
+LAUNCH_BOUNDS
+void
+sha256_iter(const int iter, const beu32* const d_in, beu32* const d_out)
+{
+  const int offset = 0;
+
+  #undef T
+  #define T(i) beu32 w##i = d_in[offset+i];
+
+  T8(EMPTY,EMPTY);
+
+  #undef B
+  #define B(i,hex) const beu32 w##i = hex;
+
+  B8(EMPTY,EMPTY);
+
+  for(int count = 0; count < iter; count++) 
+  {
+      //
+      // INIT W REGISTERS 16-63
+      //
+    #undef  R
+    #define R(i,m16,m15,m7,m2,magic)                                \
+        const beu32 w##i = w##m16 +                                 \
+          add3(w##m7,                                               \
+              (ror(w##m15, 7) ^ ror(w##m15,18) ^ shr(w##m15, 3)),  \
+              (ror(w##m2, 17) ^ ror(w##m2, 19) ^ shr(w##m2, 10))); \
+
+      R48(EMPTY,EMPTY);
+
+    #undef H
+    #define H(i,alpha,magic) beu32 alpha = magic;
+
+    H8(EMPTY,EMPTY);
+
+      //
+      // MAIN LOOP
+      //
+    #undef  W
+    #define W(i,m16,m15,m7,m2,magic)                        \
+      {                                                     \
+        beu32 t = add3(add3(h,w##i,magic),                  \
+                      (ror(e,6) ^ ror(e,11) ^ ror(e,25)),  \
+                      ((e & f) ^ notand(e,g)));            \
+                                                            \
+        d += t;                                             \
+                                                            \
+        t = add3(t,                                         \
+                (ror(a,2) ^ ror(a,13) ^ ror(a,22)),        \
+                ((a & (b ^ c)) ^ (b & c)));                \
+                                                            \
+        hmix(&a,&b,&c,&d,&e,&f,&g,&h,&t);                   \
+      }
+
+      W64(EMPTY,EMPTY);
+
+      #undef H
+      #define H(i,alpha,magic) w##i = magic + alpha;
+
+      H8(EMPTY,EMPTY);
+  }
+
+  #undef T
+  #define T(i) d_out[offset+i] = w##i;
+
+  T8(EMPTY,EMPTY);
+}
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -431,10 +583,27 @@ int main(int argc, char** argv)
   // LAUNCH KERNEL
   //
 
-  beu32* d_hash;
+  const int size = sizeof(beu32)*8;
 
-  cudaMalloc(&d_hash,sizeof(beu32)*8);
+  beu32* h_in = (beu32*)malloc(size);
+  beu32* d_in;
+  cudaMalloc(&d_in,sizeof(beu32)*8);
 
+  beu32* h_out = (beu32*)malloc(size);
+  beu32* d_out;
+  cudaMalloc(&d_out,sizeof(beu32)*8);
+  
+  h_in[0] = 0xba7816bf;
+  h_in[1] = 0x8f01cfea;
+  h_in[2] = 0x414140de;
+  h_in[3] = 0x5dae2223;
+  h_in[4] = 0xb00361a3;
+  h_in[5] = 0x96177a9c;
+  h_in[6] = 0xb410ff61;
+  h_in[7] = 0xf20015ad;
+
+  cudaMemcpy(d_in,h_in,size,cudaMemcpyHostToDevice);
+  sha256_iter<<<1,1>>>(1000000,d_in,d_out);
   //
   // FROM "FIPS 180-2, Secure Hash Standard, with Change Notice 1"
   //
@@ -461,24 +630,44 @@ int main(int argc, char** argv)
                             0x00000000,
                             0x00000000,
                             0x00000018);
-*/
-sha256TestKernel<<<1,1>>>(d_hash,
-                              0xba7816bf,
-                              0x8f01cfea,
-                              0x414140de,
-                              0x5dae2223,
-                              0xb00361a3,
-                              0x96177a9c,
-                              0xb410ff61,
-                              0xf20015ad,
-                              0x80000000,
-                              0x00000000,
-                              0x00000000,
-                              0x00000000,
-                              0x00000000,
-                              0x00000000,
-                              0x00000000,
-                              0x00000100);    
+                            */
+                            err = cudaDeviceSynchronize();
+
+                            if (err) {
+                              printf("Err = %d\n",err);
+                              exit(err);
+                            }
+                          
+                            //
+                            //
+                            //
+                          
+                            cudaMemcpy(h_out,d_out,sizeof(beu32)*8,cudaMemcpyDeviceToHost);
+                          
+                            printf("gold: %08x %08x %08x %08x %08x %08x %08x %08x\n",
+                                   0xba7816bf,0x8f01cfea,0x414140de,0x5dae2223,
+                                   0xb00361a3,0x96177a9c,0xb410ff61,0xf20015ad);
+                          
+                            printf("cuda: %08x %08x %08x %08x %08x %08x %08x %08x\n",
+                              h_out[0],h_out[1],h_out[2],h_out[3],h_out[4],h_out[5],h_out[6],h_out[7]);
+ /*                         
+sha256TestKernel<<<1,1>>>(d_out,
+                          0xba7816bf,
+                          0x8f01cfea,
+                          0x414140de,
+                          0x5dae2223,
+                          0xb00361a3,
+                          0x96177a9c,
+                          0xb410ff61,
+                          0xf20015ad,
+                          0x80000000,
+                          0x00000000,
+                          0x00000000,
+                          0x00000000,
+                          0x00000000,
+                          0x00000000,
+                          0x00000000,
+                          0x00000100);                            
 
   err = cudaDeviceSynchronize();
 
@@ -491,22 +680,23 @@ sha256TestKernel<<<1,1>>>(d_hash,
   //
   //
 
-  beu32 hash[8];
-
-  cudaMemcpy(hash,d_hash,sizeof(beu32)*8,cudaMemcpyDeviceToHost);
+  cudaMemcpy(h_out,d_out,sizeof(beu32)*8,cudaMemcpyDeviceToHost);
 
   printf("gold: %08x %08x %08x %08x %08x %08x %08x %08x\n",
          0xba7816bf,0x8f01cfea,0x414140de,0x5dae2223,
          0xb00361a3,0x96177a9c,0xb410ff61,0xf20015ad);
 
   printf("cuda: %08x %08x %08x %08x %08x %08x %08x %08x\n",
-         hash[0],hash[1],hash[2],hash[3],hash[4],hash[5],hash[6],hash[7]);
-
+    h_out[0],h_out[1],h_out[2],h_out[3],h_out[4],h_out[5],h_out[6],h_out[7]);
+*/
   //
   //
   //
 
-  cudaFree(d_hash);
+  cudaFree(d_in);
+  cudaFree(d_out);
+  free(h_in);
+  free(h_out);
 
   cudaDeviceReset();
 
