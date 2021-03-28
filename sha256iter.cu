@@ -454,7 +454,9 @@ LAUNCH_BOUNDS
 void
 sha256_iter(const int iter, const beu32* const d_in, beu32* const d_out)
 {
-  const int offset = 0;
+  // Maybe can do linear addressing into 256 bytes and then shfl, but probably not worth it.
+
+  const int offset = threadIdx.x * 8;
   
   // Don't need initial hash values h0 through h7, results stored directly in bytes 0-7 of w
 
@@ -596,16 +598,28 @@ int main(int argc, char** argv)
   // LAUNCH KERNEL
   //
 
-  const int size = sizeof(beu32)*8;
+  const int size = sizeof(beu32)*8*32;
 
   beu32* h_in = (beu32*)malloc(size);
   beu32* d_in;
-  cudaMalloc(&d_in,sizeof(beu32)*8);
+  cudaMalloc(&d_in,size);
 
   beu32* h_out = (beu32*)malloc(size);
   beu32* d_out;
-  cudaMalloc(&d_out,sizeof(beu32)*8);
-  
+  cudaMalloc(&d_out,size);
+
+  for (int i = 0; i < 32; i++) {
+    const int offset = i * 8;
+    h_in[offset+0] = 0;
+    h_in[offset+1] = 0;
+    h_in[offset+2] = 0;
+    h_in[offset+3] = 0;
+    h_in[offset+4] = 0;
+    h_in[offset+5] = 0;
+    h_in[offset+6] = 0;
+    h_in[offset+7] = 48+i;
+  }
+/*
   h_in[0] = 0xba7816bf;
   h_in[1] = 0x8f01cfea;
   h_in[2] = 0x414140de;
@@ -614,9 +628,36 @@ int main(int argc, char** argv)
   h_in[5] = 0x96177a9c;
   h_in[6] = 0xb410ff61;
   h_in[7] = 0xf20015ad;
+  */
+  
 
   cudaMemcpy(d_in,h_in,size,cudaMemcpyHostToDevice);
-  sha256_iter<<<1,1>>>(1000000,d_in,d_out);
+  sha256_iter<<<1,32>>>(1000000,d_in,d_out);
+
+  err = cudaDeviceSynchronize();
+
+  if (err) {
+    printf("Err = %d\n",err);
+    exit(err);
+  }
+
+  cudaMemcpy(h_out,d_out,size,cudaMemcpyDeviceToHost);
+
+  for (int i = 0; i < 32; i++) {
+    const int offset = i * 8;
+    const beu32 h0 = h_out[offset+0];
+    const beu32 h1 = h_out[offset+1];
+    const beu32 h2 = h_out[offset+2];
+    const beu32 h3 = h_out[offset+3];
+    const beu32 h4 = h_out[offset+4];
+    const beu32 h5 = h_out[offset+5];
+    const beu32 h6 = h_out[offset+6];
+    const beu32 h7 = h_out[offset+7];
+    printf("cuda %d: %08x %08x %08x %08x %08x %08x %08x %08x\n",
+      i, h0, h1, h2, h3, h4, h5, h6, h7);
+  }
+
+
   //
   // FROM "FIPS 180-2, Secure Hash Standard, with Change Notice 1"
   //
