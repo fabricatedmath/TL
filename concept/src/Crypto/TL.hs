@@ -97,18 +97,10 @@ randomHashTowers :: Int -> Int -> IO (NonEmpty Tower)
 randomHashTowers n i = sequence $ nonEmptyReplicate n (randomHashTower i)
 
 randomHashTower :: Int -> IO Tower
-randomHashTower i = hashTower i <$> randomHash
-  where
-    hashTower :: Int -> Hash -> Tower
-    hashTower i h = 
-      Tower 
-      { towerSize = i
-      , towerStart = h
-      , towerEnd = iterate' i sha256iter h
-      }
-
-    randomHash :: IO Hash
-    randomHash = Hash <$> CRT.getRandomBytes 32
+randomHashTower i = 
+  do
+    h <- Hash <$> CRT.getRandomBytes 32
+    pure $ Tower { towerSize = i, towerStart = h, towerEnd = iterate' i sha256iter h}
 
 -- Crypto Stuff
 
@@ -133,7 +125,7 @@ encryptHash hashKey hashMsg =
 decryptHash :: Hash -> EncryptedHash -> Either CE.CryptoError Hash
 decryptHash hashKey (EncryptedHash msg) = 
   fmap (\c -> Hash $ ecbDecrypt c msg) i
-    where i:: Either CE.CryptoError AES256
+    where i :: Either CE.CryptoError AES256
           i = CE.eitherCryptoError $ cipherInit $ unHash hashKey
 
 -- Helpers
