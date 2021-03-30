@@ -46,10 +46,15 @@ data Tower =
   , towerEnd :: Hash 
   } deriving Show
 
-data Chain = Chain Int Checkpoint EncryptedHash Chain | Empty
+-- Start at ChainHead at Hash, hash Int times, working up to Checkpoint (and verify)
+-- then on to Chain links, if Chain is Empty, then verified Hash is the stop point
+-- otherwise, on to the other links!
+data ChainHead = ChainHead Int Hash Checkpoint Chain
   deriving Show
 
-data ChainHead = ChainHead Int Checkpoint Hash Chain
+-- Need to decrypt EncryptedHash with Hash from previous checkpointed Hash
+-- and then hash up to Checkpoint (and verify), then on to next link
+data Chain = Chain Int EncryptedHash Checkpoint Chain | Empty
   deriving Show
 
 data CryptoTLError = MatchingIssue Checkpoint Hash | CryptoError CE.CryptoError
@@ -58,7 +63,7 @@ data CryptoTLError = MatchingIssue Checkpoint Hash | CryptoError CE.CryptoError
 -- Module Export
 
 solveChain :: ChainHead -> Either CryptoTLError Hash
-solveChain (ChainHead i c h chain) =
+solveChain (ChainHead i h c chain) =
   do
     let h' = iterate' i sha256iter h
     case verifyCheckpoint c h' of
@@ -66,10 +71,10 @@ solveChain (ChainHead i c h chain) =
       True -> 
         case chain of
           Empty -> pure h'
-          Chain i' c' e' chain' -> 
+          Chain i' e' c' chain' -> 
             do
               dMsg <- wrapCE $ decryptHash h' e' 
-              solveChain $ ChainHead i' c' dMsg chain'
+              solveChain $ ChainHead i' dMsg c' chain'
 
   where wrapCE :: Either CE.CryptoError a -> Either CryptoTLError a
         wrapCE = either (Left . CryptoError) pure
@@ -82,16 +87,16 @@ createChain n i = foldTowers <$> randomHashTowers n i
 foldTowers :: NonEmpty Tower -> Either CE.CryptoError (Hash, ChainHead)
 foldTowers (t :| ts) = 
   do
-    let chainHead = ChainHead (towerSize t) (sha256checkpoint $ towerEnd t) (towerStart t) Empty
+    let chainHead = ChainHead (towerSize t) (towerStart t) (sha256checkpoint $ towerEnd t)  Empty
     chain <- foldlM foldTower chainHead ts 
     pure $ (towerEnd t, chain)
   where
     foldTower :: ChainHead -> Tower -> Either CE.CryptoError ChainHead
-    foldTower (ChainHead i c h chain) t = 
+    foldTower (ChainHead i h c chain) t = 
       do
         eHash <- encryptHash (towerEnd t) h
-        let chain' = Chain i c eHash chain
-        return $ ChainHead (towerSize t) (sha256checkpoint $ towerEnd t) (towerStart t) chain'
+        let chain' = Chain i eHash c chain
+        return $ ChainHead (towerSize t) (towerStart t) (sha256checkpoint $ towerEnd t)  chain'
 
 randomHashTowers :: Int -> Int -> IO (NonEmpty Tower)
 randomHashTowers n i = sequence $ nonEmptyReplicate n (randomHashTower i)
@@ -110,6 +115,7 @@ sha256 = Hash . ByteArray.convert . hashWith SHA256
 sha256iter :: Hash -> Hash
 sha256iter = sha256 . unHash
 
+-- Add 1 to each byte (with overflow) and then hash to yield our checkpoint
 sha256checkpoint :: Hash -> Checkpoint
 sha256checkpoint = Checkpoint . sha256 . BS.map (+1) . unHash
 
