@@ -24,6 +24,7 @@
 
 #include <cuda.h>
 #include <iostream>
+#include <chrono>
 using namespace std;
 
 #define WARP_SIZE                    32
@@ -632,9 +633,22 @@ int main(int argc, char** argv)
   
 
   cudaMemcpy(d_in,h_in,size,cudaMemcpyHostToDevice);
-  sha256_iter<<<1,32>>>(1000000,d_in,d_out);
+
+  cudaDeviceSynchronize();
+
+  auto start = chrono::steady_clock::now();
+  sha256_iter<<<1,32>>>(10000000,d_in,d_out);
 
   err = cudaDeviceSynchronize();
+  auto end = chrono::steady_clock::now();
+                         
+  cout << "Elapsed time in nanoseconds : "
+      << chrono::duration_cast<chrono::nanoseconds>(end - start).count()
+      << " ns" << endl;
+
+    cout << "Elapsed time in seconds : "
+      << chrono::duration_cast<chrono::seconds>(end - start).count()
+      << " s" << endl;
 
   if (err) {
     printf("Err = %d\n",err);
@@ -656,96 +670,6 @@ int main(int argc, char** argv)
     printf("cuda %d: %08x %08x %08x %08x %08x %08x %08x %08x\n",
       i, h0, h1, h2, h3, h4, h5, h6, h7);
   }
-
-
-  //
-  // FROM "FIPS 180-2, Secure Hash Standard, with Change Notice 1"
-  //
-  // B.1 SHA-256 Example (One-Block Message)
-  //
-  // Let the message, M, be the 24-bit (l = 24) ASCII string "abc ",
-  // which is equivalent to the following binary string:
-  //
-  /*
-  sha256TestKernel<<<1,1>>>(d_hash,
-                            0x61626380,
-                            0x00000000,
-                            0x00000000,
-                            0x00000000,
-                            0x00000000,
-                            0x00000000,
-                            0x00000000,
-                            0x00000000,
-                            0x00000000,
-                            0x00000000,
-                            0x00000000,
-                            0x00000000,
-                            0x00000000,
-                            0x00000000,
-                            0x00000000,
-                            0x00000018);
-                            */
-                            err = cudaDeviceSynchronize();
-
-                            if (err) {
-                              printf("Err = %d\n",err);
-                              exit(err);
-                            }
-                          
-                            //
-                            //
-                            //
-                          
-                            cudaMemcpy(h_out,d_out,sizeof(beu32)*8,cudaMemcpyDeviceToHost);
-                          
-                            printf("gold: %08x %08x %08x %08x %08x %08x %08x %08x\n",
-                                   0xba7816bf,0x8f01cfea,0x414140de,0x5dae2223,
-                                   0xb00361a3,0x96177a9c,0xb410ff61,0xf20015ad);
-                          
-                            printf("cuda: %08x %08x %08x %08x %08x %08x %08x %08x\n",
-                              h_out[0],h_out[1],h_out[2],h_out[3],h_out[4],h_out[5],h_out[6],h_out[7]);
- /*                         
-sha256TestKernel<<<1,1>>>(d_out,
-                          0xba7816bf,
-                          0x8f01cfea,
-                          0x414140de,
-                          0x5dae2223,
-                          0xb00361a3,
-                          0x96177a9c,
-                          0xb410ff61,
-                          0xf20015ad,
-                          0x80000000,
-                          0x00000000,
-                          0x00000000,
-                          0x00000000,
-                          0x00000000,
-                          0x00000000,
-                          0x00000000,
-                          0x00000100);                            
-
-  err = cudaDeviceSynchronize();
-
-  if (err) {
-    printf("Err = %d\n",err);
-    exit(err);
-  }
-
-  //
-  //
-  //
-
-  cudaMemcpy(h_out,d_out,sizeof(beu32)*8,cudaMemcpyDeviceToHost);
-
-  printf("gold: %08x %08x %08x %08x %08x %08x %08x %08x\n",
-         0xba7816bf,0x8f01cfea,0x414140de,0x5dae2223,
-         0xb00361a3,0x96177a9c,0xb410ff61,0xf20015ad);
-
-  printf("cuda: %08x %08x %08x %08x %08x %08x %08x %08x\n",
-    h_out[0],h_out[1],h_out[2],h_out[3],h_out[4],h_out[5],h_out[6],h_out[7]);
-*/
-  //
-  //
-  //
 
   cudaFree(d_in);
   cudaFree(d_out);
