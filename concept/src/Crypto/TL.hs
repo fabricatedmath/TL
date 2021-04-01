@@ -1,10 +1,9 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Crypto.TL 
-  --( solveChain
-  --, createChain
-  --) where
-    where
+  ( solveChain
+  , createChain
+  ) where
 
 import Basement.Types.Word256 (Word256(..))
 

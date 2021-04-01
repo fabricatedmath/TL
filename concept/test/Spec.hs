@@ -2,8 +2,12 @@
 
 import Test.Hspec
 
+import qualified Crypto.Hash as Hash
 import Crypto.TL
 
+import qualified Data.ByteArray as ByteArray
+
+import Data.ByteString (ByteString)
 import Data.ByteString.Base16 (decodeBase16)
 import Data.Serialize
 
@@ -28,10 +32,12 @@ spec = do
                 Left err -> error $ show err
                 Right (hash, chain) -> Right hash `shouldBe` solveChain chain
     describe "Crytpto.TL" $ do
-        it "Hash check" $ do
+        it "Check SHA256 Sanity From Library" $ do
             let 
-                bs = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
-                ehash = Hash . BS256 <$> decodeBase16 bs
+                ehash = decodeBase16 "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+
+                hash' :: ByteString
+                hash' = ByteArray.convert $ Hash.hashWith Hash.SHA256 ("abc" :: ByteString)
             case ehash of
                 Left err -> error $ show err
-                Right hash -> sha256 "abc" `shouldBe` hash
+                Right hash -> hash' `shouldBe` hash
