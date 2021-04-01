@@ -8,7 +8,7 @@ module Crypto.TL
 
 import Basement.Types.Word256 (Word256(..))
 
-import Crypto.Hash
+import qualified Crypto.Hash as Hash
 import Crypto.Cipher.AES (AES256)
 import Crypto.Cipher.Types (BlockCipher(..), Cipher(..))
 import qualified Crypto.Error as CE (CryptoError(..), eitherCryptoError)
@@ -19,7 +19,7 @@ import qualified Data.ByteArray as ByteArray
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
-import qualified Data.ByteString.Base16 as Base16
+import Data.ByteString.Base16 (encodeBase16')
 import qualified Data.ByteString.Builder as Builder
 
 import Data.ByteString.Lazy (toStrict)
@@ -63,7 +63,7 @@ instance Serialize BS256 where
       word256ToBS256 = BS256 . encode
 
 instance Show BS256 where
-  show = show . Base16.encode . unBS256
+  show = show . encodeBase16' . unBS256
 
 newtype Hash = Hash { unHash :: BS256 }
   deriving (Eq, Serialize, Show)
@@ -72,7 +72,7 @@ newtype Checkpoint = Checkpoint Hash
   deriving (Eq, Serialize, Show)
 
 newtype EncryptedHash = EncryptedHash BS256
-  deriving (Serialize, Show)
+  deriving (Eq, Serialize, Show)
 
 data Tower = 
   Tower
@@ -85,15 +85,55 @@ data Tower =
 -- then on to Chain links, if Chain is Empty, then verified Hash is the stop point
 -- otherwise, on to the other links!
 data ChainHead = ChainHead Int Hash Checkpoint Chain
-  deriving Show
+  deriving (Eq, Show)
 
 -- Need to decrypt EncryptedHash with Hash from previous checkpointed Hash
 -- and then hash up to Checkpoint (and verify), then on to next link
 data Chain = Chain Int EncryptedHash Checkpoint Chain | Empty
-  deriving Show
+  deriving (Eq, Show)
+
+instance Serialize ChainHead where
+  put (ChainHead size hash checkpoint chain) = 
+    do
+      putInt64be $ fromIntegral size
+      put hash
+      put checkpoint
+      let n = numLinks chain
+      putInt64be $ fromIntegral n
+      putChain n chain
+    where
+      putChain :: Int -> Putter Chain
+      putChain 0 Empty = pure ()
+      putChain i (Chain size ehash checkpoint chain) =
+        do
+          putInt64be $ fromIntegral size
+          put ehash
+          put checkpoint
+          let i' = i-1
+          i' `seq` putChain i' chain
+      putChain _ Empty = error "Invalid Size of chain! This should not happen as we count links just before"
+  get = 
+    do
+      size <- fromIntegral <$> getInt64be
+      hash <- get
+      checkpoint <- get
+      numLinks <- fromIntegral <$> getInt64be
+      chain <- getChain numLinks
+      return $ ChainHead size hash checkpoint chain
+    where
+      getChain :: Int -> Get Chain
+      getChain 0 = pure Empty
+      getChain i = 
+        do
+          size <- fromIntegral <$> getInt64be
+          ehash <- get
+          checkpoint <- get
+          let i' = i-1
+          chain <- i' `seq` getChain i'
+          pure $ Chain size ehash checkpoint chain
 
 data CryptoTLError = MatchingIssue Checkpoint Hash | CryptoError CE.CryptoError
-  deriving Show
+  deriving (Eq, Show)
 
 numLinks :: Chain -> Int
 numLinks = numLinks' 0
@@ -153,7 +193,7 @@ randomHashTower i =
 -- Crypto Stuff
 
 sha256 :: ByteString -> Hash
-sha256 = Hash . BS256 . ByteArray.convert . hashWith SHA256
+sha256 = Hash . BS256 . ByteArray.convert . Hash.hashWith Hash.SHA256
 
 sha256iter :: Hash -> Hash
 sha256iter = sha256 . unBS256 . unHash

@@ -21,13 +21,12 @@ description:         Please see the README on GitHub at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
-- base16-bytestring
+- base16
 - basement
 - bytestring
 - cereal
 - cryptonite
 - memory
-
 
 library:
   source-dirs: src
@@ -52,4 +51,7 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
+    - cereal
     - concept
+    - hspec
+    - base16
