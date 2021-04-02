@@ -635,6 +635,13 @@ int main(int argc, char** argv)
   cudaMemcpy(d_in,h_in,size,cudaMemcpyHostToDevice);
 
   cudaDeviceSynchronize();
+  const int numBlocks = 68*2;
+  const int numThreads = 128;
+  const int numIters = 10000000;
+
+  const size_t totalIters = (size_t)numBlocks * (size_t)numThreads * (size_t)numIters;
+
+  cout << "Running " << totalIters << " total iterations on card" << endl;
 
   auto start = chrono::steady_clock::now();
   sha256_iter<<<68*2,128>>>(10000000,d_in,d_out);
@@ -650,6 +657,9 @@ int main(int argc, char** argv)
       << chrono::duration_cast<chrono::seconds>(end - start).count()
       << " s" << endl;
 
+  double microSecondsElapsed = chrono::duration_cast<chrono::microseconds>(end - start).count();
+
+  cout << (double) totalIters / microSecondsElapsed * 1000.0 * 1000.0 << " iters/second" << endl;
   if (err) {
     printf("Err = %d\n",err);
     exit(err);

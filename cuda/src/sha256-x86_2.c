@@ -304,6 +304,10 @@ int main(int argc, char* argv[])
  
     printf("Time elpased is %f seconds\n", time_spent);
 
+    double itersPerSecond = (double)numIters / time_spent;
+    
+    printf("%f iters/second\n", itersPerSecond);
+
     print256(message);
 }
 
