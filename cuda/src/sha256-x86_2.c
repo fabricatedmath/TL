@@ -63,8 +63,13 @@ void sha256_process_x86(uint32_t data[])
     ABEF_SAVE = STATE0;
     CDGH_SAVE = STATE1;
 
+    const __m128i shufmask =  _mm_set_epi8(12,13,14,15,8,9,10,11,4,5,6,7,0,1,2,3);
+    
     /* Rounds 0-3 */
     MSG = _mm_loadu_si128((const __m128i*) (data+0));
+    // big-endian to little-endian
+    // Can probably reduce this step
+    MSG = _mm_shuffle_epi8(MSG, shufmask);
     MSG0 = _mm_shuffle_epi8(MSG, MASK);
     MSG = _mm_add_epi32(MSG0, _mm_set_epi64x(0xE9B5DBA5B5C0FBCFULL, 0x71374491428A2F98ULL));
     STATE1 = _mm_sha256rnds2_epu32(STATE1, STATE0, MSG);
@@ -73,6 +78,9 @@ void sha256_process_x86(uint32_t data[])
 
     /* Rounds 4-7 */
     MSG1 = _mm_loadu_si128((const __m128i*) (data+4));
+    // big-endian to little-endian
+    // Can probably reduce this step
+    MSG1 = _mm_shuffle_epi8(MSG1, shufmask);
     MSG1 = _mm_shuffle_epi8(MSG1, MASK);
     MSG = _mm_add_epi32(MSG1, _mm_set_epi64x(0xAB1C5ED5923F82A4ULL, 0x59F111F13956C25BULL));
     STATE1 = _mm_sha256rnds2_epu32(STATE1, STATE0, MSG);
@@ -219,7 +227,6 @@ void sha256_process_x86(uint32_t data[])
     STATE0 = _mm_add_epi32(STATE0, ABEF_SAVE);
     STATE1 = _mm_add_epi32(STATE1, CDGH_SAVE);
 
-
     TMP = _mm_shuffle_epi32(STATE0, 0x1B);       /* FEBA */
     STATE1 = _mm_shuffle_epi32(STATE1, 0xB1);    /* DCHG */
     STATE0 = _mm_blend_epi16(TMP, STATE1, 0xF0); /* DCBA */
@@ -235,29 +242,41 @@ void sha256_process_x86(uint32_t data[])
 #define BILLION  1000000000.0
 
 #if defined(TEST_MAIN)
-
 #include <stdio.h>
 #include <string.h>
+
+void print256(uint32_t* data) {
+    printf("Hex: ");
+    for (int i = 0; i < 8; i++) {
+        const uint32_t v = data[i];
+        printf("%08x ", v);
+    }
+    printf("\n");
+}
+
+
 int main(int argc, char* argv[])
 {
     /* empty message with padding */
-    uint8_t message[32];
+    uint32_t message[8];
     memset(message, 0x00, sizeof(message));
 
     uint32_t* message2 = (uint32_t*)message;
-    message2[0] = __bswap_32(0xba7816bf);
-    message2[1] = __bswap_32(0x8f01cfea);
-    message2[2] = __bswap_32(0x414140de);
-    message2[3] = __bswap_32(0x5dae2223);
-    message2[4] = __bswap_32(0xb00361a3);
-    message2[5] = __bswap_32(0x96177a9c);
-    message2[6] = __bswap_32(0xb410ff61);
-    message2[7] = __bswap_32(0xf20015ad);
+    message[0] = 0xba7816bf;
+    message[1] = 0x8f01cfea;
+    message[2] = 0x414140de;
+    message[3] = 0x5dae2223;
+    message[4] = 0xb00361a3;
+    message[5] = 0x96177a9c;
+    message[6] = 0xb410ff61;
+    message[7] = 0xf20015ad;
+
+    print256(message);
 
     struct timespec start, end;
     clock_gettime(CLOCK_REALTIME, &start);
-    for (int i = 0; i < 1000000000; i++) {
-        sha256_process_x86(message2);
+    for (int i = 0; i < 10000000; i++) {
+        sha256_process_x86(message);
     }
     clock_gettime(CLOCK_REALTIME, &end);
         // time_spent = end - start
@@ -266,24 +285,7 @@ int main(int argc, char* argv[])
  
     printf("Time elpased is %f seconds\n", time_spent);
 
-    const uint8_t b1 = (uint8_t)(message2[0] >> 24);
-    const uint8_t b2 = (uint8_t)(message2[0] >> 16);
-    const uint8_t b3 = (uint8_t)(message2[0] >>  8);
-    const uint8_t b4 = (uint8_t)(message2[0] >>  0);
-    const uint8_t b5 = (uint8_t)(message2[1] >> 24);
-    const uint8_t b6 = (uint8_t)(message2[1] >> 16);
-    const uint8_t b7 = (uint8_t)(message2[1] >>  8);
-    const uint8_t b8 = (uint8_t)(message2[1] >>  0);
-
-    /* e3b0c44298fc1c14... */
-    printf("SHA256 hash of empty message: ");
-    printf("%02X%02X%02X%02X%02X%02X%02X%02X...\n",
-        b1, b2, b3, b4, b5, b6, b7, b8);   
-    
-    for (int j = 0; j < 8; j++) {
-        message2[j] = __bswap_32(message2[j]);
-    }
-    //message2
+    print256(message);
 }
 
 #endif
