@@ -599,7 +599,7 @@ int main(int argc, char** argv)
   // LAUNCH KERNEL
   //
 
-  const int size = sizeof(beu32)*8*32;
+  const int size = sizeof(beu32)*8*256;
 
   beu32* h_in = (beu32*)malloc(size);
   beu32* d_in;
@@ -609,7 +609,7 @@ int main(int argc, char** argv)
   beu32* d_out;
   cudaMalloc(&d_out,size);
 
-  for (int i = 0; i < 32; i++) {
+  for (int i = 0; i < 256; i++) {
     const int offset = i * 8;
     h_in[offset+0] = 0;
     h_in[offset+1] = 0;
@@ -637,7 +637,7 @@ int main(int argc, char** argv)
   cudaDeviceSynchronize();
 
   auto start = chrono::steady_clock::now();
-  sha256_iter<<<1,32>>>(10000000,d_in,d_out);
+  sha256_iter<<<68*2,128>>>(10000000,d_in,d_out);
 
   err = cudaDeviceSynchronize();
   auto end = chrono::steady_clock::now();
