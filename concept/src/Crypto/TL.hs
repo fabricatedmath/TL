@@ -3,6 +3,7 @@
 module Crypto.TL 
   ( solveChain
   , createChain
+  , sha256, sha256iter, iterate'
   ) where
 
 import Basement.Types.Word256 (Word256(..))

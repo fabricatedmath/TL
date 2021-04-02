@@ -237,13 +237,14 @@ void sha256_process_x86(uint32_t data[])
     _mm_storeu_si128((__m128i*) &data[4], STATE1);
 }
 
-#define TEST_MAIN
+//#define TEST_MAIN
 
 #define BILLION  1000000000.0
 
-#if defined(TEST_MAIN)
+// #if defined(TEST_MAIN)
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
 
 void print256(uint32_t* data) {
     printf("Hex: ");
@@ -257,6 +258,24 @@ void print256(uint32_t* data) {
 
 int main(int argc, char* argv[])
 {
+    int numIters = 1;
+    if (argc > 1) {
+        char* p = argv[1];
+        int errno = 0;
+        long conv = strtol(argv[1], &p, 10);
+
+        // Check for errors: e.g., the string does not represent an integer
+        // or the integer is larger than int
+        if (errno != 0 || *p != '\0' || conv > INT_MAX || conv < INT_MIN) {
+            // Put here the handling of the error, like exiting the program with
+            // an error message
+        } else {
+            // No error
+            numIters = conv;    
+        }
+    }
+    printf("Running hash for %d iterations\n", numIters);
+
     /* empty message with padding */
     uint32_t message[8];
     memset(message, 0x00, sizeof(message));
@@ -275,7 +294,7 @@ int main(int argc, char* argv[])
 
     struct timespec start, end;
     clock_gettime(CLOCK_REALTIME, &start);
-    for (int i = 0; i < 10000000; i++) {
+    for (int i = 0; i < numIters; i++) {
         sha256_process_x86(message);
     }
     clock_gettime(CLOCK_REALTIME, &end);
@@ -288,4 +307,4 @@ int main(int argc, char* argv[])
     print256(message);
 }
 
-#endif
+// #endif

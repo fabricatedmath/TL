@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Main where
 
 import Crypto.TL
@@ -11,3 +12,5 @@ main =
         putStrLn $ "Created Hash Chain: " ++ show chain
         putStrLn ""
         putStrLn $ "Solved Chain: " ++ show (solveChain chain)
+
+        print $ iterate' 10000000 sha256iter $ sha256 "abc"
