@@ -1,3 +1,4 @@
 2080ti getting 5.40209e+09 iters/second
 
 3960x getting  30263646.309809 (3.0e7) iters/second on single core
+

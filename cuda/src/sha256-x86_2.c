@@ -11,7 +11,7 @@
 # include <x86intrin.h>
 #endif
 #include <byteswap.h>
- #include <time.h>
+#include <time.h>
 
 /* Microsoft supports Intel SHA ACLE extensions as of Visual Studio 2015 */
 #if defined(_MSC_VER)

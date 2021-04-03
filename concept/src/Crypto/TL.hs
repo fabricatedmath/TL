@@ -1,9 +1,12 @@
+-- {-# LANGUAGE ForeignFunctionInterface #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Crypto.TL 
   ( solveChain
   , createChain
   , sha256, sha256iter, iterate'
+  , sha256iterFast
   ) where
 
 import Basement.Types.Word256 (Word256(..))
@@ -20,9 +23,6 @@ import qualified Data.ByteArray as ByteArray
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import Data.ByteString.Base16 (encodeBase16')
-import qualified Data.ByteString.Builder as Builder
-
-import Data.ByteString.Lazy (toStrict)
 
 import Data.Either (fromRight)
 
@@ -32,35 +32,37 @@ import Data.List.NonEmpty (NonEmpty(..))
 
 import Data.Serialize
 
-import Data.Word (Word64)
+import Foreign.Marshal.Utils
+import Foreign.Ptr
+import Foreign.Storable
 
 instance Serialize Word256 where
   put (Word256 w0 w1 w2 w3) =
     do
-      putWord64be w0
-      putWord64be w1
-      putWord64be w2
-      putWord64be w3
+      putWord64le w0
+      putWord64le w1
+      putWord64le w2
+      putWord64le w3
   get =
     do
-      w0 <- getWord64be
-      w1 <- getWord64be
-      w2 <- getWord64be
-      w3 <- getWord64be
+      w0 <- getWord64le
+      w1 <- getWord64le
+      w2 <- getWord64le
+      w3 <- getWord64le
       pure $ Word256 w0 w1 w2 w3
 
 newtype BS256 = BS256 { unBS256 :: ByteString }
   deriving Eq
 
+bs256ToWord256 :: BS256 -> Word256
+bs256ToWord256 = fromRight undefined . decode . unBS256
+
+word256ToBS256 :: Word256 -> BS256
+word256ToBS256 = BS256 . encode
+
 instance Serialize BS256 where
   put = put . bs256ToWord256
-    where
-      bs256ToWord256 :: BS256 -> Word256
-      bs256ToWord256 = fromRight undefined . decode . unBS256
   get = fmap word256ToBS256 get
-    where
-      word256ToBS256 :: Word256 -> BS256
-      word256ToBS256 = BS256 . encode
 
 instance Show BS256 where
   show = show . encodeBase16' . unBS256
@@ -92,26 +94,46 @@ data ChainHead = ChainHead Int Hash Checkpoint Chain
 data Chain = Chain Int EncryptedHash Checkpoint Chain | Empty
   deriving (Eq, Show)
 
+putChain :: Int -> Putter Chain
+putChain 0 Empty = pure ()
+putChain i (Chain len ehash checkpoint chain) =
+  do
+    putInt64be $ fromIntegral len
+    put ehash
+    put checkpoint
+    let i' = i-1
+    i' `seq` putChain i' chain
+putChain _ Empty = error "Invalid Size of chain! This should not happen as we count links just before"
+
+getChain :: Int -> Get Chain
+getChain 0 = pure Empty
+getChain i = 
+  do
+    len <- fromIntegral <$> getInt64be
+    ehash <- get
+    checkpoint <- get
+    let i' = i-1
+    chain <- i' `seq` getChain i'
+    pure $ Chain len ehash checkpoint chain
+
+chainNumLinks :: Chain -> Int
+chainNumLinks = numLinks' 0
+  where
+    numLinks' :: Int -> Chain -> Int
+    numLinks' i Empty = i
+    numLinks' i (Chain _ _ _ c) = i' `seq` numLinks' i' c
+      where i' = i+1
+
 instance Serialize ChainHead where
-  put (ChainHead size hash checkpoint chain) = 
+  put (ChainHead len hash checkpoint chain) = 
     do
-      putInt64be $ fromIntegral size
+      putInt64be $ fromIntegral len
       put hash
       put checkpoint
-      let n = numLinks chain
-      putInt64be $ fromIntegral n
-      putChain n chain
-    where
-      putChain :: Int -> Putter Chain
-      putChain 0 Empty = pure ()
-      putChain i (Chain size ehash checkpoint chain) =
-        do
-          putInt64be $ fromIntegral size
-          put ehash
-          put checkpoint
-          let i' = i-1
-          i' `seq` putChain i' chain
-      putChain _ Empty = error "Invalid Size of chain! This should not happen as we count links just before"
+      let numLinks = chainNumLinks chain
+      putInt64be $ fromIntegral numLinks
+      putChain numLinks chain
+
   get = 
     do
       size <- fromIntegral <$> getInt64be
@@ -120,28 +142,9 @@ instance Serialize ChainHead where
       numLinks <- fromIntegral <$> getInt64be
       chain <- getChain numLinks
       return $ ChainHead size hash checkpoint chain
-    where
-      getChain :: Int -> Get Chain
-      getChain 0 = pure Empty
-      getChain i = 
-        do
-          size <- fromIntegral <$> getInt64be
-          ehash <- get
-          checkpoint <- get
-          let i' = i-1
-          chain <- i' `seq` getChain i'
-          pure $ Chain size ehash checkpoint chain
 
 data CryptoTLError = MatchingIssue Checkpoint Hash | CryptoError CE.CryptoError
   deriving (Eq, Show)
-
-numLinks :: Chain -> Int
-numLinks = numLinks' 0
-  where
-    numLinks' :: Int -> Chain -> Int
-    numLinks' i Empty = i
-    numLinks' i (Chain _ _ _ c) = i' `seq` numLinks' i' c
-      where i' = i+1
 
 -- Module Export
 
@@ -173,13 +176,13 @@ foldTowers (t :| ts) =
     let chainHead = ChainHead (towerSize t) (towerStart t) (sha256checkpoint $ towerEnd t)  Empty
     chain <- foldlM foldTower chainHead ts 
     pure $ (towerEnd t, chain)
-  where
-    foldTower :: ChainHead -> Tower -> Either CE.CryptoError ChainHead
-    foldTower (ChainHead i h c chain) t = 
-      do
-        eHash <- encryptHash (towerEnd t) h
-        let chain' = Chain i eHash c chain
-        return $ ChainHead (towerSize t) (towerStart t) (sha256checkpoint $ towerEnd t)  chain'
+
+foldTower :: ChainHead -> Tower -> Either CE.CryptoError ChainHead
+foldTower (ChainHead i h c chain) t = 
+  do
+    eHash <- encryptHash (towerEnd t) h
+    let chain' = Chain i eHash c chain
+    return $ ChainHead (towerSize t) (towerStart t) (sha256checkpoint $ towerEnd t)  chain'
 
 randomHashTowers :: Int -> Int -> IO (NonEmpty Tower)
 randomHashTowers n i = sequence $ nonEmptyReplicate n (randomHashTower i)
@@ -219,18 +222,24 @@ decryptHash hashKey (EncryptedHash msg) =
 
 -- Helpers
 
-nonEmptySingleton :: a -> NonEmpty a
-nonEmptySingleton a = a :| []
-
 nonEmptyReplicate :: Int -> a -> NonEmpty a
 nonEmptyReplicate i a = a :| replicate (pred i) a
 
 iterate' :: Int -> (a -> a) -> a -> a
-iterate' n f a = iterate'' n a
+iterate' n f ainit = iterate'' n ainit
   where 
-    iterate'' n a
-      | n <= 0 = a
-      | otherwise = a' `seq` n' `seq` iterate' n' f a'
+    iterate'' i a
+      | i <= 0 = a
+      | otherwise = a' `seq` i' `seq` iterate' i' f a'
         where
           a' = f a 
-          n' = n-1
+          i' = i-1
+
+sha256iterFast :: Int -> Hash -> IO Hash
+sha256iterFast i hash = 
+  do
+    let w256 = bs256ToWord256 $ unHash hash
+    Hash . word256ToBS256 <$> with w256 (\ptr -> c_sha256_iter i ptr >> peek ptr)
+
+foreign import ccall "sha256_iter"
+  c_sha256_iter :: Int -> Ptr Word256 -> IO ()

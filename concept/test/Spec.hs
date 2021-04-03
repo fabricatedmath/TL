@@ -41,3 +41,9 @@ spec = do
             case ehash of
                 Left err -> error $ show err
                 Right hash -> hash' `shouldBe` hash
+        
+        it "Check Haskell vs C iterations are equal (1000)" $ do
+            let hash = sha256 "abc"
+                numIter = 1000
+            hash' <- sha256iterFast numIter hash
+            iterate' numIter sha256iter hash `shouldBe` hash'
