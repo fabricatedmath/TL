@@ -2,11 +2,6 @@
 #include <stdint.h>
 #include <x86intrin.h>
 
-#include <time.h>
-#include <string.h>
-#include <limits.h>
-
-void print256(uint32_t* data);
 void sha256_process_x86(uint32_t data[]);
 
 const uint32_t padding[8] = 
@@ -251,8 +246,3 @@ void sha256_process_x86(uint32_t data[])
     _mm_storeu_si128((__m128i*) &data[0], STATE0);
     _mm_storeu_si128((__m128i*) &data[4], STATE1);
 }
-/*
-int main() {
-    test();
-}
-*/

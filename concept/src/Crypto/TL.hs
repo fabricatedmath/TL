@@ -1,4 +1,3 @@
--- {-# LANGUAGE ForeignFunctionInterface #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
