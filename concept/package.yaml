@@ -9,7 +9,7 @@ copyright:           "2021 Author name here"
 extra-source-files:
 - README.md
 - ChangeLog.md
-- cbits/sha256-x86.c
+- cbits/sha256-sse41-sha-x86.c
 
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
@@ -32,7 +32,7 @@ dependencies:
 library:
   source-dirs: src
   c-sources: 
-    - cbits/sha256-x86.c
+    - cbits/sha256-sse41-sha-x86.c
   cc-options: -msse4.1 -msha #-maes
   ghc-options:
     - -Wall

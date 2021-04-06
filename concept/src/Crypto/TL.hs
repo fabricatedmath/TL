@@ -240,5 +240,5 @@ sha256iterFast i hash =
     let w256 = bs256ToWord256 $ unHash hash
     Hash . word256ToBS256 <$> with w256 (\ptr -> c_sha256_iter i ptr >> peek ptr)
 
-foreign import ccall "sha256_iter"
+foreign import ccall safe "sha256_iter"
   c_sha256_iter :: Int -> Ptr Word256 -> IO ()
