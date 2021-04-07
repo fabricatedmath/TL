@@ -10,3 +10,11 @@ find_package(Boost COMPONENTS serialization program_options REQUIRED)
 
 
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} sodium)
+
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+
+
+#SET(GCC_COVERAGE_COMPILE_FLAGS "-msse4.1 -msha -Wall -O2 -pthread")
+
+#add_definitions(${GCC_COVERAGE_COMPILE_FLAGS})
