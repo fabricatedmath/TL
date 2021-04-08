@@ -27,7 +27,7 @@ spec = do
                 Right hash -> hash' `shouldBe` hash
 
         it "Check Haskell vs C iterations are equal (1000)" $ do
-            let hash = sha256 "abc"
+            let hash = hashDefault "abc"
                 numIter = 1000
             sha256iter numIter hash `shouldBe` sha256iterFast numIter hash
 

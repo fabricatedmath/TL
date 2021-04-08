@@ -1,5 +1,6 @@
 module Crypto.TL.Chain 
   ( createChain, solveChain
+  , ChainHead
   ) where
 
 import Crypto.TL.Primitives 
@@ -13,15 +14,15 @@ import Data.Serialize (Putter, Get, Serialize(..), getInt64le, putInt64le)
 -- Start at ChainHead at Hash, hash Int times, working up to Checksum (and verify)
 -- then on to Chain links, if Chain is Empty, then verified Hash is the stop point
 -- otherwise on to the other links!
-data ChainHead = ChainHead !Int !Hash !Checksum !Chain
+data ChainHead a = ChainHead !Int !(Hash a) !(Checksum a) !(Chain a)
   deriving (Eq, Show)
 
 -- Need to decrypt EncryptedHash with Hash from previous checksummed Hash
 -- and then hash up to Checksum (and verify), then on to next link
-data Chain = Chain !Int !EncryptedHash !Checksum !Chain | Empty
+data Chain a = Chain !Int !(EncryptedHash a) !(Checksum a) !(Chain a) | Empty
   deriving (Eq, Show)
 
-putChain :: Int -> Putter Chain
+putChain :: Int -> Putter (Chain a)
 putChain 0 Empty = pure ()
 putChain i (Chain len ehash checksum chain) =
   do
@@ -32,7 +33,7 @@ putChain i (Chain len ehash checksum chain) =
     i' `seq` putChain i' chain
 putChain _ Empty = error "Invalid Size of chain! This should not happen as we count links just before"
 
-getChain :: Int -> Get Chain
+getChain :: Int -> Get (Chain a)
 getChain 0 = pure Empty
 getChain i = 
   do
@@ -43,15 +44,15 @@ getChain i =
     chain <- i' `seq` getChain i'
     pure $ Chain len ehash checksum chain
 
-chainNumLinks :: Chain -> Int
+chainNumLinks :: Chain a -> Int
 chainNumLinks = numLinks' 0
   where
-    numLinks' :: Int -> Chain -> Int
+    numLinks' :: Int -> Chain a -> Int
     numLinks' i Empty = i
     numLinks' i (Chain _ _ _ c) = i' `seq` numLinks' i' c
       where i' = i+1
 
-instance Serialize ChainHead where
+instance Serialize (ChainHead a) where
   put (ChainHead len hash checksum chain) = 
     do
       putInt64le $ fromIntegral len
@@ -70,10 +71,10 @@ instance Serialize ChainHead where
       chain <- getChain numLinks
       return $ ChainHead size hash checksum chain
 
-solveChain :: ChainHead -> Either String Hash
+solveChain :: Hashable a => ChainHead a -> Either String (Hash a)
 solveChain (ChainHead i h c chain) =
   do
-    let h' = sha256iter i h
+    let h' = hashIter i h
     case verifyChecksum c h' of
       False -> Left "Failed to match!"
       True ->
@@ -84,33 +85,33 @@ solveChain (ChainHead i h c chain) =
               let dMsg = decrypt h' e' 
               solveChain $ ChainHead i' dMsg c' chain'
 
-createChain :: Int -> Int -> IO (Hash, ChainHead)
+createChain :: Hashable a => Int -> Int -> IO (Hash a, ChainHead a)
 createChain n i = foldTowers <$> randomHashTowers n i
 
-data Tower = 
+data Tower a = 
   Tower
   { towerSize :: !Int
-  , towerStart :: !Hash
-  , towerEnd :: !Hash 
+  , towerStart :: !(Hash a)
+  , towerEnd :: !(Hash a) 
   } deriving Show
 
-foldTowers :: NonEmpty Tower -> (Hash, ChainHead)
+foldTowers :: Hashable a => NonEmpty (Tower a) -> (Hash a, ChainHead a)
 foldTowers (t :| ts) = 
   (towerEnd t, chain)
-    where chainHead = ChainHead (towerSize t) (towerStart t) (sha256checksum $ towerEnd t)  Empty
+    where chainHead = ChainHead (towerSize t) (towerStart t) (calcChecksum $ towerEnd t)  Empty
           chain = foldl' foldTower chainHead ts 
 
-foldTower :: ChainHead -> Tower -> ChainHead
+foldTower :: Hashable a => ChainHead a -> Tower a -> ChainHead a
 foldTower (ChainHead i h c chain) t = 
-  ChainHead (towerSize t) (towerStart t) (sha256checksum $ towerEnd t)  chain'
+  ChainHead (towerSize t) (towerStart t) (calcChecksum $ towerEnd t)  chain'
     where eHash = encrypt (towerEnd t) h
           chain' = Chain i eHash c chain
 
-randomHashTowers :: Int -> Int -> IO (NonEmpty Tower)
+randomHashTowers :: Hashable a => Int -> Int -> IO (NonEmpty (Tower a))
 randomHashTowers n i = sequence $ nonEmptyReplicate n $ randomHashTower i
 
-randomHashTower :: Int -> IO Tower
-randomHashTower i = (\h -> Tower i h $ sha256iter i h) <$> randomHash
+randomHashTower :: Hashable a => Int -> IO (Tower a)
+randomHashTower i = (\h -> Tower i h $ hashIter i h) <$> randomHash
 
 nonEmptyReplicate :: Int -> a -> NonEmpty a
 nonEmptyReplicate i a = a :| replicate (pred i) a
