@@ -6,6 +6,7 @@ module Crypto.TL.Primitives
   , calcChecksum, verifyChecksum
   , randomHash
   , encrypt, decrypt
+  , slowMode, fastMode, HashMode
   ) where
 
 import Control.Monad (replicateM, when)
@@ -24,18 +25,20 @@ import Data.ByteString.Base16 (encodeBase16')
 
 import Data.ByteString.Unsafe (unsafeUseAsCString)
 
+import Data.Proxy (Proxy(..))
+
 import Data.Serialize
 
 import Foreign.C.String (CString)
 
 import System.IO.Unsafe (unsafePerformIO)
 
-newtype Hash a = 
+newtype Hash = 
     Hash 
     { unHash :: ByteString
     } deriving Eq
   
-instance Serialize (Hash a) where
+instance Serialize Hash where
   put (Hash bs) = 
     do
       let unpackedBS = BS.unpack bs
@@ -43,29 +46,34 @@ instance Serialize (Hash a) where
       mapM_ putWord8 unpackedBS
   get = Hash . BS.pack <$> replicateM 32 getWord8
 
-newtype Checksum a = 
+newtype Checksum = 
     Checksum 
-    { unChecksum :: Hash a
+    { unChecksum :: Hash
     } deriving (Eq, Serialize, Show)
 
-newtype EncryptedHash a = 
+newtype EncryptedHash = 
     EncryptedHash 
-    { unEncryptedHash :: Hash a
+    { unEncryptedHash :: Hash
     } deriving (Eq, Serialize, Show)
 
-instance Show (Hash a) where
+instance Show Hash where
     show = show . encodeBase16' . unHash
 
 class Hashable a where
-  hashIter :: Int -> Hash a -> Hash a
+  hashIter :: Proxy a -> Int -> Hash -> Hash
 
-hashOnce :: Hashable a => Hash a -> Hash a
-hashOnce = hashIter 1 
+type HashMode a = Proxy a
+
+hashOnce :: Hashable a => HashMode a -> Hash -> Hash
+hashOnce mode = hashIter mode 1
 
 data Slow
 
+slowMode :: HashMode Slow
+slowMode = Proxy
+
 instance Hashable Slow where
-  hashIter num = iterate' num sha256'
+  hashIter _ num = iterate' num sha256'
     where
         iterate' :: Int -> (a -> a) -> a -> a
         iterate' n f ainit = iterate'' n ainit
@@ -77,40 +85,43 @@ instance Hashable Slow where
                         a' = f a 
                         i' = i-1
 
-        sha256' :: Hash a -> Hash a
+        sha256' :: Hash -> Hash
         sha256' = Hash . ByteArray.convert . Hash.hashWith Hash.SHA256 . unHash
 
 data Fast
 
+fastMode :: HashMode Fast
+fastMode = Proxy
+
 instance Hashable Fast where
-  hashIter i hash = unsafePerformIO $ sha256iterFast'
+  hashIter _ i hash = unsafePerformIO $ sha256iterFast'
     where
-      sha256iterFast' :: IO (Hash Fast)
+      sha256iterFast' :: IO Hash
       sha256iterFast' =
           do
               let bs' = BS.copy $ unHash hash
               unsafeUseAsCString bs' (c_sha256_iter i)
               pure $ Hash bs'
 
-hashDefault :: ByteString -> Hash a
+hashDefault :: ByteString -> Hash
 hashDefault = Hash . ByteArray.convert . Hash.hashWith Hash.SHA256
 
-randomHash :: IO (Hash a)
+randomHash :: IO Hash
 randomHash = Hash <$> CRT.getRandomBytes 32
 
 -- Add 1 to each byte (with overflow) and then hash to yield our checkpoint
-calcChecksum :: Hashable a => Hash a -> Checksum a
-calcChecksum = Checksum . hashOnce . Hash . BS.map (+1) . unHash
+calcChecksum :: Hashable a => HashMode a -> Hash -> Checksum
+calcChecksum mode = Checksum . hashOnce mode . Hash . BS.map (+1) . unHash
 
-verifyChecksum :: Hashable a => Checksum a -> Hash a -> Bool
-verifyChecksum checksum hash = checksum == calcChecksum hash
+verifyChecksum :: Hashable a => HashMode a -> Checksum -> Hash -> Bool
+verifyChecksum mode checksum hash = checksum == calcChecksum mode hash
 
 -- To Encrypt, we xor the ending of tower n and the start of tower (n+1)
-encrypt :: Hash a -> Hash a -> EncryptedHash a
+encrypt :: Hash -> Hash -> EncryptedHash
 encrypt (Hash bs1) (Hash bs2) = EncryptedHash $ Hash $ BS.packZipWith xor bs1 bs2
 
 -- To Decrypt, we xor the ending of tower n and the result of the encrypt of tower (n+1)
-decrypt :: Hash a -> EncryptedHash a -> Hash a
+decrypt :: Hash -> EncryptedHash -> Hash
 decrypt hashKey (EncryptedHash eHash) = unEncryptedHash $ encrypt hashKey eHash
 
 -- fast simd c sha, optimized for iteration

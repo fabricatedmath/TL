@@ -29,20 +29,28 @@ spec = do
         it "Check Haskell vs C iterations are equal (1000)" $ do
             let hash = hashDefault "abc"
                 numIter = 1000
-            sha256iter numIter hash `shouldBe` sha256iterFast numIter hash
+            hashIter slowMode numIter hash `shouldBe` hashIter fastMode numIter hash
 
         it "Hash Serialize/Deserialize" $ do
-            let hash = sha256 "abc"
+            let hash = hashDefault "abc"
             Right hash `shouldBe` decode (encode hash)
 
-    describe "Crypto.TL.Chain" $ do
+    describe "Crypto.TL.Chain (Fast)" $ do
         it "Chain Serialize/Deserialize" $ do
-            (_hash, chain) <- createChain 10 10
-            let bs = encode chain
-            Right chain `shouldBe` decode bs
+            (_hash, chain) <- createChain fastMode 10 10
+            Right chain `shouldBe` decode (encode chain)
 
         it "Create Chain and Solve Chain" $ do
-            (hash, chain) <- createChain 10 10
-            Right hash `shouldBe` solveChain chain
+            (hash, chain) <- createChain fastMode 10 10
+            Right hash `shouldBe` solveChain fastMode chain
+
+    describe "Crypto.TL.Chain (Slow)" $ do
+        it "Chain Serialize/Deserialize" $ do
+            (_hash, chain) <- createChain slowMode 10 10
+            Right chain `shouldBe` decode (encode chain)
+
+        it "Create Chain and Solve Chain" $ do
+            (hash, chain) <- createChain slowMode 10 10
+            Right hash `shouldBe` solveChain slowMode chain
 
 
