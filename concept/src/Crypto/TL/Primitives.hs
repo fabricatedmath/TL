@@ -56,58 +56,6 @@ newtype EncryptedHash =
 instance Show Hash where
     show = show . encodeBase16' . unHash
 
-{-
-putChain :: Int -> Putter Chain
-putChain 0 Empty = pure ()
-putChain i (Chain len ehash checksum chain) =
-  do
-    putInt64be $ fromIntegral len
-    put ehash
-    put checksum
-    let i' = i-1
-    i' `seq` putChain i' chain
-putChain _ Empty = error "Invalid Size of chain! This should not happen as we count links just before"
-
-getChain :: Int -> Get Chain
-getChain 0 = pure Empty
-getChain i = 
-  do
-    len <- fromIntegral <$> getInt64be
-    ehash <- get
-    checksum <- get
-    let i' = i-1
-    chain <- i' `seq` getChain i'
-    pure $ Chain len ehash checksum chain
-
-chainNumLinks :: Chain -> Int
-chainNumLinks = numLinks' 0
-  where
-    numLinks' :: Int -> Chain -> Int
-    numLinks' i Empty = i
-    numLinks' i (Chain _ _ _ c) = i' `seq` numLinks' i' c
-      where i' = i+1
-
-instance Serialize ChainHead where
-  put (ChainHead len hash checksum chain) = 
-    do
-      putInt64be $ fromIntegral len
-      put hash
-      put checksum
-      let numLinks = chainNumLinks chain
-      putInt64be $ fromIntegral numLinks
-      putChain numLinks chain
-
-  get = 
-    do
-      size <- fromIntegral <$> getInt64be
-      hash <- get
-      checksum <- get
-      numLinks <- fromIntegral <$> getInt64be
-      chain <- getChain numLinks
-      return $ ChainHead size hash checksum chain
--}
--- Module Export
-
 sha256 :: ByteString -> Hash
 sha256 = Hash . ByteArray.convert . Hash.hashWith Hash.SHA256
 
@@ -155,5 +103,6 @@ sha256iterFast i hash = unsafePerformIO $ sha256iterFast'
             unsafeUseAsCString bs' (c_sha256_iter i)
             pure $ Hash bs'
 
+-- fast simd c sha, optimized for iteration
 foreign import ccall safe "sha256_iter"
   c_sha256_iter :: Int -> CString-> IO ()

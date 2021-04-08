@@ -4,4 +4,4 @@ module Crypto.TL
     ) where
 
 import Crypto.TL.Chain
-import Crypto.TL.Primitives (sha256iterFast, sha256)
+import Crypto.TL.Primitives (sha256, sha256iter, sha256iterFast)
