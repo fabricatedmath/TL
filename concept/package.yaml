@@ -36,7 +36,7 @@ library:
   cc-options: -msse4.1 -msha #-maes
   ghc-options:
     - -Wall
-    #- -Werror
+    - -Werror
     - -O2
 
 

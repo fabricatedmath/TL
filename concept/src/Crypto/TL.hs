@@ -3,51 +3,33 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Crypto.TL 
-  ( solveChain
-  , createChain
-  , sha256, sha256iter
-  , sha256iterFast
-  , abcHash --remove this
+  ( createChain, solveChain
+  , sha256, sha256iter, sha256iterFast
   ) where
 
-import Basement.Types.Word256 (Word256(..))
+import qualified Crypto.Hash as Hash (hashWith, SHA256(..))
 
-import qualified Crypto.Hash as Hash
-import Crypto.Cipher.AES (AES256)
-import Crypto.Cipher.Types (BlockCipher(..), Cipher(..))
-import qualified Crypto.Error as CE (CryptoError(..), eitherCryptoError)
-
-import qualified Crypto.Random.Types as CRT
+import qualified Crypto.Random.Types as CRT (getRandomBytes)
 
 import Data.Bits (xor)
 
 import qualified Data.ByteArray as ByteArray
 
 import Data.ByteString (ByteString)
-import qualified Data.ByteString as BS
-import Data.ByteString.Base16 (decodeBase16Lenient, encodeBase16')
+import qualified Data.ByteString as BS (copy, map, packZipWith)
+import Data.ByteString.Base16 (encodeBase16')
 
 import Data.ByteString.Unsafe (unsafeUseAsCString)
-
-import Data.Either (fromRight)
 
 import Data.Foldable (foldl')
 
 import Data.List.NonEmpty (NonEmpty(..))
 
-import Data.Serialize
+-- import Data.Serialize
 
 import Foreign.C.String (CString)
 
-import Foreign.Marshal.Utils
-import Foreign.Ptr
-import Foreign.Storable
-
 import System.IO.Unsafe (unsafePerformIO)
-
-abcHash :: Hash
-abcHash = Hash $ decodeBase16Lenient bs
-    where bs = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
 
 newtype Hash = 
     Hash 
@@ -77,12 +59,12 @@ data Tower =
 -- Start at ChainHead at Hash, hash Int times, working up to Checksum (and verify)
 -- then on to Chain links, if Chain is Empty, then verified Hash is the stop point
 -- otherwise, on to the other links!
-data ChainHead = ChainHead Int Hash Checksum Chain
+data ChainHead = ChainHead !Int !Hash !Checksum !Chain
   deriving (Eq, Show)
 
 -- Need to decrypt EncryptedHash with Hash from previous checksummed Hash
 -- and then hash up to Checksum (and verify), then on to next link
-data Chain = Chain Int EncryptedHash Checksum Chain | Empty
+data Chain = Chain !Int !EncryptedHash !Checksum !Chain | Empty
   deriving (Eq, Show)
 
 {-
@@ -220,14 +202,14 @@ nonEmptyReplicate :: Int -> a -> NonEmpty a
 nonEmptyReplicate i a = a :| replicate (pred i) a
 
 sha256iterFast :: Int -> Hash -> Hash
-sha256iterFast i hash = unsafePerformIO $ sha256iterFFI i hash
-
-sha256iterFFI :: Int -> Hash -> IO Hash
-sha256iterFFI i hash =
-    do
-        let bs' = BS.copy $ unHash hash
-        unsafeUseAsCString bs' (c_sha256_iter i)
-        pure $ Hash bs'
+sha256iterFast i hash = unsafePerformIO $ sha256iterFast'
+  where
+    sha256iterFast' :: IO Hash
+    sha256iterFast' =
+        do
+            let bs' = BS.copy $ unHash hash
+            unsafeUseAsCString bs' (c_sha256_iter i)
+            pure $ Hash bs'
 
 foreign import ccall safe "sha256_iter"
   c_sha256_iter :: Int -> CString-> IO ()
