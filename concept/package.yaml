@@ -33,12 +33,11 @@ library:
   source-dirs: src
   c-sources: 
     - cbits/sha256-sse41-sha-x86.c
-  cc-options: -msse4.1 -msha #-maes
+  cc-options: -msse4.1 -msha
   ghc-options:
     - -Wall
     - -Werror
     - -O2
-
 
 executables:
   concept-chain-exe:
@@ -60,6 +59,26 @@ executables:
     dependencies:
     - concept
 
+  concept-create-exe:
+    main:                Main.hs
+    source-dirs:         app/create
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - concept
+
+  concept-solve-exe:
+    main:                Main.hs
+    source-dirs:         app/solve
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - concept
+
 tests:
   concept-test:
     main:                Spec.hs
@@ -69,7 +88,5 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - cereal
     - concept
     - hspec
-    - base16

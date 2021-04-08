@@ -15,12 +15,33 @@ import Data.Serialize (Putter, Get, Serialize(..), getInt64le, putInt64le)
 -- then on to Chain links, if Chain is Empty, then verified Hash is the stop point
 -- otherwise on to the other links!
 data ChainHead = ChainHead !Int !Hash !Checksum !Chain
-  deriving (Eq, Show)
+  deriving Eq
+
+instance Show ChainHead where
+  show (ChainHead height hash checksum chain) = 
+    "ChainHead: " ++ "\n" ++
+    tab ++ "Height: " ++ show height ++ "\n" ++
+    tab ++ "Start Hash: " ++ show hash ++ "\n" ++
+    tab ++ "Checksum: " ++ show checksum ++ "\n" ++
+    show chain
+    where tab :: String
+          tab = "  "
 
 -- Need to decrypt EncryptedHash with Hash from previous checksummed Hash
 -- and then hash up to Checksum (and verify), then on to next link
 data Chain = Chain !Int !EncryptedHash !Checksum !Chain | Empty
-  deriving (Eq, Show)
+  deriving Eq
+
+instance Show Chain where
+  show (Chain height ehash checksum chain) = 
+    "ChainLink: " ++ "\n" ++
+    tab ++ "Height: " ++ show height ++ "\n" ++
+    tab ++ "Encrypted Hash: " ++ show ehash ++ "\n" ++
+    tab ++ "Checksum: " ++ show checksum ++ "\n" ++
+    show chain
+    where tab :: String
+          tab = "  "
+  show Empty = ""
 
 putChain :: Int -> Putter Chain
 putChain 0 Empty = pure ()

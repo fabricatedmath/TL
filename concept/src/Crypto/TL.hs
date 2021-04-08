@@ -4,4 +4,9 @@ module Crypto.TL
     ) where
 
 import Crypto.TL.Chain
-import Crypto.TL.Primitives (hashDefault, Slow, Fast, Hash, Hashable(..), HashMode, slowMode, fastMode)
+import Crypto.TL.Primitives 
+    ( hashDefault
+    , Slow, SlowMode, slowMode
+    , Fast, FastMode, fastMode
+    , Hash, Hashable(..), HashMode
+    )

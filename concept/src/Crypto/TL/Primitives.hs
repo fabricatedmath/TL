@@ -6,7 +6,7 @@ module Crypto.TL.Primitives
   , calcChecksum, verifyChecksum
   , randomHash
   , encrypt, decrypt
-  , slowMode, fastMode, HashMode
+  , slowMode, fastMode, HashMode, SlowMode, FastMode
   ) where
 
 import Control.Monad (replicateM, when)
@@ -37,6 +37,9 @@ newtype Hash =
     Hash 
     { unHash :: ByteString
     } deriving Eq
+
+instance Show Hash where
+    show = show . encodeBase16' . unHash
   
 instance Serialize Hash where
   put (Hash bs) = 
@@ -49,15 +52,18 @@ instance Serialize Hash where
 newtype Checksum = 
     Checksum 
     { unChecksum :: Hash
-    } deriving (Eq, Serialize, Show)
+    } deriving (Eq, Serialize)
+
+instance Show Checksum where
+  show = show . unChecksum
 
 newtype EncryptedHash = 
     EncryptedHash 
     { unEncryptedHash :: Hash
-    } deriving (Eq, Serialize, Show)
+    } deriving (Eq, Serialize)
 
-instance Show Hash where
-    show = show . encodeBase16' . unHash
+instance Show EncryptedHash where
+  show = show . unEncryptedHash
 
 class Hashable a where
   hashIter :: Proxy a -> Int -> Hash -> Hash
@@ -68,6 +74,8 @@ hashOnce :: Hashable a => HashMode a -> Hash -> Hash
 hashOnce mode = hashIter mode 1
 
 data Slow
+
+type SlowMode = HashMode Slow
 
 slowMode :: HashMode Slow
 slowMode = Proxy
@@ -89,6 +97,8 @@ instance Hashable Slow where
         sha256' = Hash . ByteArray.convert . Hash.hashWith Hash.SHA256 . unHash
 
 data Fast
+
+type FastMode = HashMode Fast
 
 fastMode :: HashMode Fast
 fastMode = Proxy
