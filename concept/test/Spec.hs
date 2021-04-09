@@ -14,6 +14,17 @@ import Data.Serialize
 main :: IO ()
 main = hspec spec
 
+specChain :: (Int -> Int -> IO (Maybe (Hash,ChainHead))) -> Spec
+specChain f = 
+    do
+        it "Chain Serialize/Deserialize" $ do
+            Just (_hash, chain) <- f 10 10
+            Right chain `shouldBe` decode (encode chain)
+
+        it "Create Chain and Solve Chain" $ do
+            Just (hash, chain) <- f 10 10
+            Right hash `shouldBe` solveChain fastMode chain
+
 spec :: Spec
 spec = do
     describe "Crytpto.TL.Primitives" $ do
@@ -36,21 +47,13 @@ spec = do
             Right hash `shouldBe` decode (encode hash)
 
     describe "Crypto.TL.Chain (Fast)" $ do
-        it "Chain Serialize/Deserialize" $ do
-            (_hash, chain) <- createChain fastMode 10 10
-            Right chain `shouldBe` decode (encode chain)
-
-        it "Create Chain and Solve Chain" $ do
-            (hash, chain) <- createChain fastMode 10 10
-            Right hash `shouldBe` solveChain fastMode chain
+        specChain (createChain fastMode)
 
     describe "Crypto.TL.Chain (Slow)" $ do
-        it "Chain Serialize/Deserialize" $ do
-            (_hash, chain) <- createChain slowMode 10 10
-            Right chain `shouldBe` decode (encode chain)
+        specChain (createChain slowMode)
 
-        it "Create Chain and Solve Chain" $ do
-            (hash, chain) <- createChain slowMode 10 10
-            Right hash `shouldBe` solveChain slowMode chain
+    describe "Crypto.TL.Chain.Parallel (Fast)" $ do
+        specChain (createChainParallel fastMode)
 
-
+    describe "Crypto.TL.Chain.Parallel (Slow)" $ do
+        specChain (createChainParallel slowMode)

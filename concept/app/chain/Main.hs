@@ -10,7 +10,7 @@ chainDemo :: forall a. Hashable a => HashMode a -> IO ()
 chainDemo mode = 
     do
         let (n,i) = (10,10)
-        (hash, chain) <- createChain mode n i
+        Just (hash, chain) <- createChain mode n i
         putStrLn $ "Target Hash in Chain: " ++ show hash
         putStrLn ""
         putStrLn $ "Created Hash Chain: " ++ show chain

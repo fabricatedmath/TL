@@ -1,13 +1,15 @@
 module Crypto.TL.Chain 
   ( createChain, solveChain
-  , ChainHead
+  , ChainHead, Tower(..), foldTowers
   ) where
 
 import Crypto.TL.Primitives 
 
+import Control.Monad (replicateM)
+
 import Data.Foldable (foldl')
 
-import Data.List.NonEmpty (NonEmpty(..))
+import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 
 import Data.Serialize (Putter, Get, Serialize(..), getInt64le, putInt64le)
 
@@ -106,14 +108,19 @@ solveChain mode (ChainHead i h c chain) =
               let dMsg = decrypt h' e' 
               solveChain mode $ ChainHead i' dMsg c' chain'
 
-createChain :: Hashable a => HashMode a -> Int -> Int -> IO (Hash, ChainHead)
-createChain mode n i = foldTowers mode <$> randomHashTowers mode n i
+createChain :: Hashable a => HashMode a -> Int -> Int -> IO (Maybe (Hash, ChainHead))
+createChain mode n i = 
+  do
+    mtowers <- buildTowers mode n i
+    return $ do
+      towers <- mtowers
+      return $ towers `seq` foldTowers mode towers
 
 data Tower = 
   Tower
   { towerSize :: !Int
   , towerStart :: !Hash
-  , towerEnd :: !Hash 
+  , towerEnd :: !Hash
   } deriving Show
 
 foldTowers :: Hashable a => HashMode a -> NonEmpty Tower -> (Hash, ChainHead)
@@ -128,11 +135,8 @@ foldTower mode (ChainHead i h c chain) t =
     where eHash = encrypt (towerEnd t) h
           chain' = Chain i eHash c chain
 
-randomHashTowers :: Hashable a => HashMode a -> Int -> Int -> IO (NonEmpty Tower)
-randomHashTowers mode n i = sequence $ nonEmptyReplicate n $ randomHashTower mode i
-
-randomHashTower :: Hashable a => HashMode a -> Int -> IO Tower
-randomHashTower mode i = (\h -> Tower i h $ hashIter mode i h) <$> randomHash
-
-nonEmptyReplicate :: Int -> a -> NonEmpty a
-nonEmptyReplicate i a = a :| replicate (pred i) a
+buildTowers :: Hashable a => HashMode a -> Int -> Int -> IO (Maybe (NonEmpty Tower))
+buildTowers mode n i = 
+  do
+    towers <- replicateM n $ (\h -> Tower i h $ hashIter mode i h) <$> randomHash
+    return $ nonEmpty towers

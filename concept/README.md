@@ -11,3 +11,6 @@ Can build chains and solve them (See app/chain/Main.hs)
 * Pretty printing for console print of chains
 * verbose mode for printing chains
 * parallel creation
+* verify chains
+* set max number of cores
+* logging tower creation and progress
