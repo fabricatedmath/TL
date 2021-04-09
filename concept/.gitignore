@@ -3,4 +3,4 @@
 *.cabal
 *.lock
 *.txt
-
+*.chain

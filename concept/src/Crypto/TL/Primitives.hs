@@ -25,6 +25,8 @@ import Data.ByteString.Base16 (encodeBase16')
 
 import Data.ByteString.Unsafe (unsafeUseAsCString)
 
+import Data.Char (chr)
+
 import Data.Proxy (Proxy(..))
 
 import Data.Serialize
@@ -39,7 +41,7 @@ newtype Hash =
     } deriving Eq
 
 instance Show Hash where
-    show = show . encodeBase16' . unHash
+    show = map (chr . fromEnum) . BS.unpack . encodeBase16' . unHash
   
 instance Serialize Hash where
   put (Hash bs) = 

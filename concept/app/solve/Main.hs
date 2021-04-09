@@ -2,6 +2,10 @@ module Main where
 
 import Crypto.TL
 
+import qualified Data.ByteString as BS (readFile)
+
+import Data.Serialize (decode)
+
 import System.Console.GetOpt
 
 import System.Environment (getArgs, getProgName)
@@ -39,4 +43,34 @@ options =
     ]
 
 main :: IO ()
-main = print "Solve"
+main =
+    do
+        args <- getArgs
+        let (actions, nonOptions, errors) = getOpt RequireOrder options args
+        opts <- foldl (>>=) (return startOptions) actions
+        let Options 
+                { optMode = mode
+                , optFilePath  = mfp
+                } = opts
+        case mfp of
+            Nothing ->
+                putStrLn "No filepath supplied, exiting..."
+            Just fp -> 
+                do
+                    echain <- decode <$> BS.readFile fp
+                    case echain of
+                        Left msg -> error msg
+                        Right chain -> 
+                            do
+                                let ehash = 
+                                        either
+                                        (\l -> solveChain l chain)
+                                        (\r -> solveChain r chain)
+                                        mode
+                                case ehash of
+                                    Left msg -> error msg
+                                    Right hash -> 
+                                        do
+                                            putStrLn ""
+                                            putStrLn $ "Super Secret Hash: " ++ show hash
+                                            putStrLn ""
