@@ -8,7 +8,7 @@ import Data.Serialize (encode)
 
 import System.Console.GetOpt
 import System.Environment (getArgs, getProgName)
-import System.Exit (exitWith, ExitCode(..))
+import System.Exit (exitSuccess)
 import System.IO 
 
 data Options = 
@@ -52,7 +52,7 @@ options =
         ( NoArg (\_ -> do
             prg <- getProgName
             hPutStrLn stderr (usageInfo prg options)
-            exitWith ExitSuccess
+            exitSuccess
             )
         ) "Show help"
     ]
