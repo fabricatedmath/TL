@@ -28,6 +28,7 @@ dependencies:
 - cereal
 - cryptonite
 - memory
+- mtl
 
 library:
   source-dirs: src

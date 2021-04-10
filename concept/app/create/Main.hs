@@ -63,10 +63,10 @@ options =
         ) $ "Towers height (number of iterations per tower) (Default: " ++ show defaultTowerHeight ++ ")"
     , Option "s" ["slowmode"]
         ( NoArg (\opt -> return opt { optMode = Slow })
-        ) "Switch to slow mode (non sse/sha optimized x86)"
+        ) "Switch to Slow mode (non sse/sha optimized x86)"
     , Option "" ["serial"]
         ( NoArg (\opt -> return opt { optConcurrency = Serial })
-        ) "Switch to serial mode (Default: Parallel)"
+        ) "Switch to Serial mode (Default: Parallel)"
     , Option "f" ["filepath"]
         ( ReqArg (\arg opt -> return opt { optFilePath = Just arg }) "FILEPATH"
         ) "Output File"
