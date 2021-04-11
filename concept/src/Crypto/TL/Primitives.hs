@@ -7,6 +7,7 @@ module Crypto.TL.Primitives
   , randomHash
   , encrypt, decrypt
   , slowMode, fastMode, HashMode, SlowMode, FastMode
+  , unsafeUseAsCString
   ) where
 
 import Control.Monad (replicateM, when)
@@ -23,7 +24,7 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS (copy, map, pack, packZipWith, unpack)
 import Data.ByteString.Base16 (encodeBase16')
 
-import Data.ByteString.Unsafe (unsafeUseAsCString)
+import qualified Data.ByteString.Unsafe as BS (unsafeUseAsCString)
 
 import Data.Char (chr)
 
@@ -112,8 +113,12 @@ instance Hashable Fast where
       sha256iterFast' =
           do
               let bs' = BS.copy $ unHash hash
-              unsafeUseAsCString bs' (c_sha256_iter i)
+              BS.unsafeUseAsCString bs' (c_sha256_iter i)
               pure $ Hash bs'
+
+-- fast simd c sha, optimized for iteration
+foreign import ccall safe "sha256_iter"
+  c_sha256_iter :: Int -> CString-> IO ()
 
 hashDefault :: ByteString -> Hash
 hashDefault = Hash . ByteArray.convert . Hash.hashWith Hash.SHA256
@@ -136,6 +141,11 @@ encrypt (Hash bs1) (Hash bs2) = EncryptedHash $ Hash $ BS.packZipWith xor bs1 bs
 decrypt :: Hash -> EncryptedHash -> Hash
 decrypt hashKey (EncryptedHash eHash) = unEncryptedHash $ encrypt hashKey eHash
 
--- fast simd c sha, optimized for iteration
-foreign import ccall safe "sha256_iter"
-  c_sha256_iter :: Int -> CString-> IO ()
+unsafeUseAsCString
+  :: Hash
+  -> (CString -> IO a)
+  -> IO a
+unsafeUseAsCString hash f = 
+  do
+    let bs' = unHash hash
+    BS.unsafeUseAsCString bs' f

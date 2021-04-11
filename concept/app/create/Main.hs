@@ -26,8 +26,6 @@ data Options =
     , optFilePath :: Maybe FilePath
     } deriving Show
 
-
-
 defaultNumTowers :: Int
 defaultNumTowers = 10
 

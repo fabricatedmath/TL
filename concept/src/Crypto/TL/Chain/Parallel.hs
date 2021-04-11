@@ -42,6 +42,4 @@ createChainParallel :: Hashable a => HashMode a -> Int -> Int -> IO (Maybe (Hash
 createChainParallel mode n i = 
     do
         mtowers <- buildTowersParallel mode n i
-        return $ do 
-            towers <- mtowers
-            return $ foldTowers mode towers
+        return $ foldTowers mode <$> mtowers
