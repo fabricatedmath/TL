@@ -14,3 +14,5 @@ Can build chains and solve them (See app/chain/Main.hs)
 * verify chains
 * set max number of cores
 * logging tower creation and progress
+
+* SSE/AVX Per thread Parallel version
