@@ -16,3 +16,7 @@ Can build chains and solve them (See app/chain/Main.hs)
 * logging tower creation and progress
 
 * SSE/AVX Per thread Parallel version
+
+* cpu speed benchmarking / parallel (compare against others in pool)
+
+* Make decrypt streaming (dont load whole file!)

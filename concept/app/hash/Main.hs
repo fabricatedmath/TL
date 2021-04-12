@@ -3,6 +3,7 @@
 module Main where
 
 import Control.Monad (void)
+import Control.Monad.Except (liftIO, runExceptT)
 
 import qualified Data.ByteString as BS (length, writeFile)
 
@@ -12,18 +13,15 @@ import Crypto.TL
 import Crypto.TL.Crypt
 
 import Crypto.TL
+
 main :: IO ()
 main = 
     do
         Just (hash, chain) <- createChain slowMode 10 10
-        let chainBS = encode chain
-            chainBSLen = BS.length chainBS
-        print chainBSLen
-        BS.writeFile "dogs.enc" chainBS
 
-        void $ encrypt "dogs.enc" "dogs.txt" chainBSLen hash
+        v <- runExceptT $ do
+            encryptTLA "dogs.enc" "dogs.txt" (hash, chain)
+            decryptTLA "dogs.dec" "dogs.enc" hash
+            liftIO $ putStrLn "Sucessfully decrypted TLA file"
 
-        void $ decrypt "dogs.dec" "dogs.enc" chainBSLen hash
-        --putStrLn "Hashing 'abc' one billion times (~30 seconds)"
-        --print $ hashIter fastMode 1000000000 $ hashDefault "abc"
-        
+        print v

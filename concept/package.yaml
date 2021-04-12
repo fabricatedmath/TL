@@ -30,6 +30,7 @@ dependencies:
 - cryptonite
 - memory
 - mtl
+- transformers
 
 library:
   source-dirs: src

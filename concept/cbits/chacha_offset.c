@@ -19,7 +19,7 @@ encrypt_offset(const char *target_file, const char *source_file, const long int 
     unsigned char  tag;
 
     fp_s = fopen(source_file, "rb");
-    fp_t = fopen(target_file, "wb");
+    fp_t = fopen(target_file, "ab");
     if (fseek(fp_t, offset, SEEK_CUR)) {
         goto ret;
     }

@@ -11,7 +11,12 @@ import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Crypto.TL.Chain
 import Crypto.TL.Primitives
 
-towerWorker :: Hashable a => HashMode a -> Chan (Maybe Int) -> Chan Tower -> IO ()
+towerWorker 
+    :: Hashable a 
+    => HashMode a 
+    -> Chan (Maybe Int) 
+    -> Chan Tower 
+    -> IO ()
 towerWorker mode workPool towersDone = 
     do
         mwork <- readChan workPool
@@ -25,7 +30,12 @@ towerWorker mode workPool towersDone =
                     tower `seq` writeChan towersDone tower
                     towerWorker mode workPool towersDone
 
-buildTowersParallel :: Hashable a => HashMode a -> Int -> Int -> IO (Maybe (NonEmpty Tower))
+buildTowersParallel
+    :: Hashable a 
+    => HashMode a 
+    -> Int  -- num Towers
+    -> Int -- num iters per tower
+    -> IO (Maybe (NonEmpty Tower))
 buildTowersParallel mode n i = 
     do
         numCores <- getNumCapabilities
@@ -38,7 +48,12 @@ buildTowersParallel mode n i =
         towers <- replicateM n $ readChan towersDone
         return $ nonEmpty towers
 
-createChainParallel :: Hashable a => HashMode a -> Int -> Int -> IO (Maybe (Hash, ChainHead))
+createChainParallel 
+    :: Hashable a 
+    => HashMode a 
+    -> Int -- num towers
+    -> Int -- num iters per tower
+    -> IO (Maybe (Hash, ChainHead))
 createChainParallel mode n i = 
     do
         mtowers <- buildTowersParallel mode n i
