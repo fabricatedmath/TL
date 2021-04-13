@@ -1,64 +1,67 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 module Crypto.TL.Crypt 
-    ( decryptTLA, encryptTLA
+    ( decrypt, encrypt
     ) where
 
 import Control.Monad (when)
 import Control.Monad.Except (MonadError(..))
 import Control.Monad.IO.Class (MonadIO, liftIO)
 
-import qualified Data.ByteString as BS (length, readFile, writeFile)
-import Data.Serialize (get, encode, runGetState)
+import qualified Data.ByteString as BS (length, writeFile, hGet)
+import Data.Serialize (encode, runGet)
 
 import Data.Word (Word64)
 
 import Foreign.C.String (CString, withCString)
 
-import Crypto.TL.Chain (ChainHead)
+import System.IO (withFile, IOMode(ReadMode))
+
+import Crypto.TL.Chain (ChainHead, getNumChainBytes)
 import Crypto.TL.Primitives (Hash, unsafeUseAsCString)
 
-encryptTLA
+encrypt
     :: (MonadIO m, MonadError String m)
     => FilePath -- targetFile
     -> FilePath -- sourceFile
     -> (Hash, ChainHead) 
     -> m ()
-encryptTLA targetFile sourceFile (hash, chain) = 
+encrypt targetFile sourceFile (hash, chain) = 
     do
         let bs = encode chain
         liftIO $ BS.writeFile targetFile bs
-        errCode <- liftIO $ encrypt targetFile sourceFile (BS.length bs) hash
+        errCode <- liftIO $ encryptWithOffset targetFile sourceFile (BS.length bs) hash
         when (errCode /= 0) $ throwError "Failed to encrypt file"
 
-decryptTLA
+decrypt
     :: (MonadIO m, MonadError String m)
     => FilePath -- targetFile
     -> FilePath -- sourceFile
     -> Hash
     -> m ()
-decryptTLA targetFile sourceFile hash = 
+decrypt targetFile sourceFile hash = 
     do
-        bs <- liftIO $ BS.readFile sourceFile 
-        let edecode = runGetState get bs 0
-        case edecode of 
-            Left err -> throwError $ "Failed to decode chain: " ++ err
-            Right (chain,_bs) -> 
-                do
-                    errCode <- liftIO $ decrypt targetFile sourceFile (chainByteLen chain) hash
-                    when (errCode /= 0) $ throwError "Failed to decrypt file"
+        numBytes <- getChainNumBytes sourceFile
+        errCode <- liftIO $ decryptWithOffset targetFile sourceFile numBytes hash
+        when (errCode /= 0) $ throwError "Failed to decrypt file"
+    where
+        getChainNumBytes fp = 
+            do
+                bs <- liftIO $ withFile fp ReadMode (\h -> BS.hGet h 8)
+                liftError $ runGet getNumChainBytes bs
 
-chainByteLen :: ChainHead -> Int
-chainByteLen = BS.length . encode
+        liftError :: MonadError e m => Either e a -> m a
+        liftError (Left e) = throwError e
+        liftError (Right a) = pure a
 
 -- Can clean up with Continuation Monad, gross
-encrypt
+encryptWithOffset
     :: FilePath
     -> FilePath
     -> Int 
     -> Hash
     -> IO Int
-encrypt targetFile sourceFile offset hash = 
+encryptWithOffset targetFile sourceFile offset hash = 
     do
         let offsetW = fromIntegral offset
         withCString targetFile (\tf -> 
@@ -68,13 +71,13 @@ encrypt targetFile sourceFile offset hash =
                 )
             )
 
-decrypt
+decryptWithOffset
     :: FilePath
     -> FilePath
     -> Int 
     -> Hash
     -> IO Int
-decrypt targetFile sourceFile offset hash = 
+decryptWithOffset targetFile sourceFile offset hash = 
     do
         let offsetW = fromIntegral offset
         withCString targetFile (\tf -> 
