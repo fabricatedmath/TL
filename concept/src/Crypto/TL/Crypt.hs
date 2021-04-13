@@ -45,6 +45,7 @@ decrypt targetFile sourceFile hash =
         errCode <- liftIO $ decryptWithOffset targetFile sourceFile numBytes hash
         when (errCode /= 0) $ throwError "Failed to decrypt file"
     where
+        getChainNumBytes :: (MonadIO m, MonadError String m) => FilePath -> m Int
         getChainNumBytes fp = 
             do
                 bs <- liftIO $ withFile fp ReadMode (\h -> BS.hGet h 8)
