@@ -141,11 +141,5 @@ encrypt (Hash bs1) (Hash bs2) = EncryptedHash $ Hash $ BS.packZipWith xor bs1 bs
 decrypt :: Hash -> EncryptedHash -> Hash
 decrypt hashKey (EncryptedHash eHash) = unEncryptedHash $ encrypt hashKey eHash
 
-unsafeUseAsCString
-  :: Hash
-  -> (CString -> IO a)
-  -> IO a
-unsafeUseAsCString hash f = 
-  do
-    let bs' = unHash hash
-    BS.unsafeUseAsCString bs' f
+unsafeUseAsCString :: Hash -> (CString -> IO a) -> IO a
+unsafeUseAsCString hash = BS.unsafeUseAsCString (unHash hash)

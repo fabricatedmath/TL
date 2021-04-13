@@ -45,6 +45,25 @@ instance Show Chain where
           tab = "  "
   show Empty = ""
 
+instance Serialize ChainHead where
+  put (ChainHead len hash checksum chain) = 
+    do
+      let numLinks = chainNumLinks chain
+      putInt64le $ fromIntegral numLinks
+      putInt64le $ fromIntegral len
+      put hash
+      put checksum
+      putChain numLinks chain
+
+  get = 
+    do
+      numLinks <- getChainNumLinks
+      size <- fromIntegral <$> getInt64le
+      hash <- get
+      checksum <- get
+      chain <- getChain numLinks
+      return $ ChainHead size hash checksum chain
+
 putChain :: Int -> Putter Chain
 putChain 0 Empty = pure ()
 putChain i (Chain len ehash checksum chain) =
@@ -56,6 +75,17 @@ putChain i (Chain len ehash checksum chain) =
     i' `seq` putChain i' chain
 putChain _ Empty = error "Invalid Size of chain! This should not happen as we count links just before"
 
+getChain :: Int -> Get Chain
+getChain 0 = pure Empty
+getChain i = 
+  do
+    len <- fromIntegral <$> getInt64le
+    ehash <- get
+    checksum <- get
+    let i' = i-1
+    chain <- i' `seq` getChain i'
+    pure $ Chain len ehash checksum chain
+    
 chainNumLinks :: Chain -> Int
 chainNumLinks = numLinks' 0
   where
@@ -79,32 +109,5 @@ getNumChainBytes = calcChainBytes <$> getChainNumLinks
         chainSize :: Int
         chainSize = 8 + 32 + 32
 
-instance Serialize ChainHead where
-  put (ChainHead len hash checksum chain) = 
-    do
-      let numLinks = chainNumLinks chain
-      putInt64le $ fromIntegral numLinks
-      putInt64le $ fromIntegral len
-      put hash
-      put checksum
-      putChain numLinks chain
 
-  get = 
-    do
-      numLinks <- getChainNumLinks
-      size <- fromIntegral <$> getInt64le
-      hash <- get
-      checksum <- get
-      chain <- getChain numLinks
-      return $ ChainHead size hash checksum chain
 
-getChain :: Int -> Get Chain
-getChain 0 = pure Empty
-getChain i = 
-  do
-    len <- fromIntegral <$> getInt64le
-    ehash <- get
-    checksum <- get
-    let i' = i-1
-    chain <- i' `seq` getChain i'
-    pure $ Chain len ehash checksum chain
