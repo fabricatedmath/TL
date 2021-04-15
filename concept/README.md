@@ -19,3 +19,5 @@ Can build chains and solve them (See app/chain/Main.hs)
 * test case to compare calculated num bytes with encoded bytes 
 * test vectors for xchacha
     - https://github.com/orion-rs/orion/blob/master/tests/stream/rfc_xchacha20.rs
+
+* windows support
