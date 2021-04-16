@@ -8,9 +8,11 @@ target_link_libraries(${PROJECT_NAME}
 
 find_package(Boost COMPONENTS serialization program_options REQUIRED)
 
-
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} sodium)
+target_link_libraries(${PROJECT_NAME} cuew)
+
+#include_directories(../extern/cuew/include)
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 

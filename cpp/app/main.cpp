@@ -12,6 +12,8 @@ extern "C" {
 
 #include <sodium.h>
 
+#include <cuew.h>
+
 namespace po = boost::program_options;
 
 using namespace std;
@@ -19,7 +21,6 @@ using namespace std;
 void myTask() {
     auto id = boost::this_thread::get_id();
     cout << "My id is: " << id << endl;
-    return;
 
     uint32_t data[8];
     data[0] = 0xba7816bf;
@@ -37,6 +38,15 @@ void myTask() {
 }
 
 int main(const int argc, const char* const argv[]) {
+
+     if (cuewInit(CUEW_INIT_CUDA) == CUEW_SUCCESS) {
+        printf("CUDA found\n");
+        printf("NVCC path: %s\n", cuewCompilerPath());
+        printf("NVCC version: %d\n", cuewCompilerVersion());
+    }
+    else {
+        printf("CUDA not found\n");
+    }
 
     if (sodium_init() < 0) {
         /* panic! the library couldn't be initialized, it is not safe to use */

@@ -86,18 +86,18 @@ slowMode = Proxy
 instance Hashable Slow where
   hashIter _ num = iterate' num sha256'
     where
-        iterate' :: Int -> (a -> a) -> a -> a
-        iterate' n f ainit = iterate'' n ainit
-            where 
-                iterate'' i a
-                    | i <= 0 = a
-                    | otherwise = a' `seq` i' `seq` iterate' i' f a'
-                        where
-                        a' = f a 
-                        i' = i-1
+      iterate' :: Int -> (a -> a) -> a -> a
+      iterate' n f ainit = iterate'' n ainit
+          where 
+              iterate'' i a
+                  | i <= 0 = a
+                  | otherwise = a' `seq` i' `seq` iterate' i' f a'
+                      where
+                      a' = f a 
+                      i' = i-1
 
-        sha256' :: Hash -> Hash
-        sha256' = Hash . ByteArray.convert . Hash.hashWith Hash.SHA256 . unHash
+      sha256' :: Hash -> Hash
+      sha256' = Hash . ByteArray.convert . Hash.hashWith Hash.SHA256 . unHash
 
 data Fast
 
@@ -112,9 +112,9 @@ instance Hashable Fast where
       sha256iterFast' :: IO Hash
       sha256iterFast' =
           do
-              let bs' = BS.copy $ unHash hash
-              BS.unsafeUseAsCString bs' (c_sha256_iter i)
-              pure $ Hash bs'
+            let bs' = BS.copy $ unHash hash
+            BS.unsafeUseAsCString bs' (c_sha256_iter i)
+            pure $ Hash bs'
 
 -- fast simd c sha, optimized for iteration
 foreign import ccall safe "sha256_iter"

@@ -1,0 +1,6 @@
+[submodule "cpp/cuew"]
+	path = cpp/cuew
+	url = https://github.com/CudaWrangler/cuew
+[submodule "cpp/extern/cuew"]
+	path = cpp/extern/cuew
+	url = git@github.com:fabricatedmath/cuew.git
