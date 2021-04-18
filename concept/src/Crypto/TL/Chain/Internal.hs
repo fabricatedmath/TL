@@ -1,6 +1,6 @@
 module Crypto.TL.Chain.Internal 
-    ( Tower(..), ChainHead(..), Chain(..), getNumChainBytes
-    ) where
+  ( Tower(..), ChainHead(..), Chain(..), getNumChainBytes
+  ) where
 
 import Crypto.TL.Primitives (Hash, EncryptedHash, Checksum)
 

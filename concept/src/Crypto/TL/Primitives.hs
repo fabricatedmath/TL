@@ -37,12 +37,12 @@ import Foreign.C.String (CString)
 import System.IO.Unsafe (unsafePerformIO)
 
 newtype Hash = 
-    Hash 
-    { unHash :: ByteString
-    } deriving Eq
+  Hash 
+  { unHash :: ByteString
+  } deriving Eq
 
 instance Show Hash where
-    show = map (chr . fromEnum) . BS.unpack . encodeBase16' . unHash
+  show = map (chr . fromEnum) . BS.unpack . encodeBase16' . unHash
   
 instance Serialize Hash where
   put (Hash bs) = 
@@ -61,9 +61,9 @@ instance Show Checksum where
   show = show . unChecksum
 
 newtype EncryptedHash = 
-    EncryptedHash 
-    { unEncryptedHash :: Hash
-    } deriving (Eq, Serialize)
+  EncryptedHash 
+  { unEncryptedHash :: Hash
+  } deriving (Eq, Serialize)
 
 instance Show EncryptedHash where
   show = show . unEncryptedHash
@@ -88,13 +88,13 @@ instance Hashable Slow where
     where
       iterate' :: Int -> (a -> a) -> a -> a
       iterate' n f ainit = iterate'' n ainit
-          where 
-              iterate'' i a
-                  | i <= 0 = a
-                  | otherwise = a' `seq` i' `seq` iterate' i' f a'
-                      where
-                      a' = f a 
-                      i' = i-1
+        where 
+          iterate'' i a
+            | i <= 0 = a
+            | otherwise = a' `seq` i' `seq` iterate' i' f a'
+              where
+              a' = f a 
+              i' = i-1
 
       sha256' :: Hash -> Hash
       sha256' = Hash . ByteArray.convert . Hash.hashWith Hash.SHA256 . unHash
@@ -111,10 +111,10 @@ instance Hashable Fast where
     where
       sha256iterFast' :: IO Hash
       sha256iterFast' =
-          do
-            let bs' = BS.copy $ unHash hash
-            BS.unsafeUseAsCString bs' (c_sha256_iter i)
-            pure $ Hash bs'
+        do
+          let bs' = BS.copy $ unHash hash
+          BS.unsafeUseAsCString bs' (c_sha256_iter i)
+          pure $ Hash bs'
 
 -- fast simd c sha, optimized for iteration
 foreign import ccall safe "sha256_iter"
@@ -142,4 +142,4 @@ decrypt :: Hash -> EncryptedHash -> Hash
 decrypt hashKey (EncryptedHash eHash) = unEncryptedHash $ encrypt hashKey eHash
 
 unsafeUseAsCString :: Hash -> (CString -> IO a) -> IO a
-unsafeUseAsCString hash = BS.unsafeUseAsCString (unHash hash)
+unsafeUseAsCString = BS.unsafeUseAsCString . unHash

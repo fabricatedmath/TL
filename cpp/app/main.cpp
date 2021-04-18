@@ -14,6 +14,9 @@ extern "C" {
 
 #include <cuew.h>
 
+#include <HelperCuda.h>
+#include <sha256_iter.cuh>
+
 namespace po = boost::program_options;
 
 using namespace std;
@@ -37,9 +40,15 @@ void myTask() {
     print256(data);
 }
 
-int main(const int argc, const char* const argv[]) {
+int main(int argc, char** argv) {
 
-     if (cuewInit(CUEW_INIT_CUDA) == CUEW_SUCCESS) {
+    const int errorCode = sha256_iter_cuda(500, 1, 0);
+    if (errorCode != 0) {
+        cout << getErrorString(errorCode) << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    if (cuewInit(CUEW_INIT_CUDA) == CUEW_SUCCESS) {
         printf("CUDA found\n");
         printf("NVCC path: %s\n", cuewCompilerPath());
         printf("NVCC version: %d\n", cuewCompilerVersion());
