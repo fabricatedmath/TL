@@ -45,16 +45,7 @@ library:
     - -O2
 
 executables:
-  concept-alex-exe:
-    main:                Main.hs
-    source-dirs:         app/alex
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - concept
-    
+  
   concept-chain-exe:
     main:                Main.hs
     source-dirs:         app/chain
