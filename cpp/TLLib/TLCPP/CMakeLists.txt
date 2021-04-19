@@ -1,4 +1,4 @@
-project (TLCPP LANGUAGES CUDA)
+project (TLCPP)
 
 set(c_source_files ${c_source_files} src/sha256-sse41-sha-x86.c)
 
