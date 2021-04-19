@@ -601,6 +601,10 @@ int sha256_iter_cuda(const int numTowers, const int numIters, uint32_t* starting
     return err;
   }
 
+  for (int i = 0; i < numTowers * 8; i++) {
+    h_in[i] = startingHashes[i];
+  }
+
   beu32* h_out = (beu32*)malloc(size);
   beu32* d_out;
   err = cudaMalloc(&d_out,size);
@@ -618,10 +622,7 @@ int sha256_iter_cuda(const int numTowers, const int numIters, uint32_t* starting
     return err;
   }
 
-  const size_t totalIters = (size_t)numBlocks * (size_t)blockSize * (size_t)numIters;
-
-  cout << "Running " << totalIters << " total iterations on card" << endl;
-
+  //TODO: Use clock
   auto start = chrono::steady_clock::now();
   sha256_iter_kernel<<<numBlocks,blockSize>>>(numTowers,numIters,d_in,d_out);
 
@@ -630,6 +631,15 @@ int sha256_iter_cuda(const int numTowers, const int numIters, uint32_t* starting
     return err;
   }
   auto end = chrono::steady_clock::now();
+
+  err = cudaMemcpy(h_out,d_out,size,cudaMemcpyDeviceToHost);
+  if (err != cudaSuccess) {
+    return err;
+  }
+
+  for (int i = 0; i < numTowers * 8; i++) {
+    startingHashes[i] = h_out[i];
+  }
 
   return cudaSuccess;
 }

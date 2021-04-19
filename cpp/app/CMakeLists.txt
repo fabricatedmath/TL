@@ -4,8 +4,14 @@ add_executable(${PROJECT_NAME} main.cpp)
 
 target_link_libraries(${PROJECT_NAME}
     TLCPP
-    TLCUDA
 )
+
+find_package(CUDAToolkit)
+if (CUDAToolkit_FOUND)
+    target_link_libraries(${PROJECT_NAME}
+        TLCUDA
+    )
+endif()
 
 find_package(Boost COMPONENTS serialization program_options REQUIRED)
 

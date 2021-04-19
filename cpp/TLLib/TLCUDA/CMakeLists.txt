@@ -2,9 +2,6 @@ project(TLCUDA LANGUAGES CUDA)
 
 find_package(CUDAToolkit REQUIRED)
 
-#set(CMAKE_CXX_STANDARD 17)
-#set(CMAKE_CUDA_STANDARD 17)
-
 set(cuda_source_files ${cuda_source_files} 
   src/sha256_iter.cu
   )
@@ -35,6 +32,8 @@ target_include_directories( ${PROJECT_NAME}
 target_link_libraries( ${PROJECT_NAME}
   PRIVATE CUDA::cudart
 )
+
+
 
 add_executable(prog ${TLCUDA_SOURCE_DIR}/prog/main.cu)
 target_link_libraries (prog TLCUDA cuew)

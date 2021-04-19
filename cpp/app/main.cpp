@@ -40,13 +40,42 @@ void myTask() {
     print256(data);
 }
 
+void print256This(uint32_t* data) {
+    printf("Hex: ");
+    for (int i = 0; i < 8; i++) {
+        const uint32_t v = data[i];
+        printf("%08x ", v);
+    }
+    printf("\n");
+}
+
+const uint32_t initialstate[8] = {
+    0xba7816bf, 0x8f01cfea, 0x414140de, 0x5dae2223,
+    0xb00361a3, 0x96177a9c, 0xb410ff61, 0xf20015ad
+};
+
 int main(int argc, char** argv) {
 
-    const int errorCode = sha256_iter_cuda(500, 1, 0);
+    #ifdef FOO
+        cout << "FOO" << endl;
+    #endif
+
+    uint32_t testState[8] = {
+        0xba7816bf, 0x8f01cfea, 0x414140de, 0x5dae2223,
+        0xb00361a3, 0x96177a9c, 0xb410ff61, 0xf20015ad
+    };
+
+    print256This(testState);
+
+    const int errorCode = sha256_iter_cuda(1, 1, testState);
     if (errorCode != 0) {
         cout << getErrorString(errorCode) << endl;
         exit(EXIT_FAILURE);
     }
+
+    print256This(testState);
+
+    return 0;
 
     if (cuewInit(CUEW_INIT_CUDA) == CUEW_SUCCESS) {
         printf("CUDA found\n");
