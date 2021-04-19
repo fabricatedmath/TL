@@ -58,6 +58,16 @@ const uint32_t initialstate[8] = {
 
 int main(int argc, char** argv) {
 
+    if (cuewInit(CUEW_INIT_CUDA) == CUEW_SUCCESS) {
+        printf("CUDA found\n");
+        printf("NVCC path: %s\n", cuewCompilerPath());
+        printf("NVCC version: %d\n", cuewCompilerVersion());
+    }
+    else {
+        printf("CUDA not found\n");
+    }
+
+
     #ifdef CUDACOMPILED
         cout << "CUDACOMPILED" << endl;
     #else 
@@ -83,15 +93,7 @@ int main(int argc, char** argv) {
 
     return 0;
 
-    if (cuewInit(CUEW_INIT_CUDA) == CUEW_SUCCESS) {
-        printf("CUDA found\n");
-        printf("NVCC path: %s\n", cuewCompilerPath());
-        printf("NVCC version: %d\n", cuewCompilerVersion());
-    }
-    else {
-        printf("CUDA not found\n");
-    }
-
+    
     if (sodium_init() < 0) {
         /* panic! the library couldn't be initialized, it is not safe to use */
         return 1; 

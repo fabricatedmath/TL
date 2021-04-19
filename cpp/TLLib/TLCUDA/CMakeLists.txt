@@ -29,6 +29,7 @@ target_include_directories( ${PROJECT_NAME}
     PUBLIC ${PROJECT_SOURCE_DIR}/include
 )
 
+message(${CUDAToolkit_VERSION})
 target_link_libraries( ${PROJECT_NAME}
   PRIVATE CUDA::cudart
 )

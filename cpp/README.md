@@ -10,3 +10,5 @@ TODO:
   * XOR hashes with a password if stored on disk. (Prevents pulling starting hashes off of disk image, even after deletion)
   * XOR starting hashes on disk with file SHA256 if actively encrypting a file
   * Sanity checksum for XOR starting hash read off of disk
+
+* CUDA: need to cubin/ptx for driver api only...
