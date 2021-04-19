@@ -33,7 +33,5 @@ target_link_libraries( ${PROJECT_NAME}
   PRIVATE CUDA::cudart
 )
 
-
-
 add_executable(prog ${TLCUDA_SOURCE_DIR}/prog/main.cu)
 target_link_libraries (prog TLCUDA cuew)
