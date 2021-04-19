@@ -11,6 +11,7 @@ if (CUDAToolkit_FOUND)
     target_link_libraries(${PROJECT_NAME}
         TLCUDA
     )
+    target_compile_definitions(${PROJECT_NAME} PUBLIC CUDACOMPILED)
 endif()
 
 find_package(Boost COMPONENTS serialization program_options REQUIRED)
@@ -22,6 +23,8 @@ target_link_libraries(${PROJECT_NAME} cuew)
 #include_directories(../extern/cuew/include)
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+
+
 
 
 #SET(GCC_COVERAGE_COMPILE_FLAGS "-msse4.1 -msha -Wall -O2 -pthread")
