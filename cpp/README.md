@@ -12,3 +12,5 @@ TODO:
   * Sanity checksum for XOR starting hash read off of disk
 
 * CUDA: need to cubin/ptx for driver api only...
+
+* intern/cycles/device/cuda/device_cuda_impl.cpp (cuew examples, driver loading)
