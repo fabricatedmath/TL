@@ -6,13 +6,15 @@ target_link_libraries(${PROJECT_NAME}
     TLCPP
 )
 
-find_package(CUDAToolkit)
-if (CUDAToolkit_FOUND)
-    target_link_libraries(${PROJECT_NAME}
-        TLCUDA
-    )
-    target_compile_definitions(${PROJECT_NAME} PUBLIC CUDACOMPILED)
-endif()
+add_dependencies(TL PTX)
+
+#find_package(CUDAToolkit)
+#if (CUDAToolkit_FOUND)
+    #target_link_libraries(${PROJECT_NAME}
+        #TLCUDA
+    #)
+    #target_compile_definitions(${PROJECT_NAME} PUBLIC CUDACOMPILED)
+#endif()
 
 find_package(Boost COMPONENTS serialization program_options REQUIRED)
 

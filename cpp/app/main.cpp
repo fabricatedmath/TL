@@ -15,8 +15,6 @@ extern "C" {
 #include <cuew.h>
 
 #ifdef CUDACOMPILED
-    #include <HelperCuda.h>
-    #include <sha256_iter.cuh>
 #endif //CUDACOMPILED
 
 namespace po = boost::program_options;
@@ -78,7 +76,7 @@ int main(int argc, char** argv) {
         0xba7816bf, 0x8f01cfea, 0x414140de, 0x5dae2223,
         0xb00361a3, 0x96177a9c, 0xb410ff61, 0xf20015ad
     };
-
+/*
 #ifdef CUDACOMPILED
     print256This(testState);
 
@@ -90,7 +88,7 @@ int main(int argc, char** argv) {
 
     print256This(testState);
 #endif //CUDACOMPILED
-
+*/
     return 0;
 
     
