@@ -6,6 +6,24 @@
 
 #include <cuew.h>
 
+// Allocates an array with random float entries.
+void RandomInit(uint32_t *data, int n)
+{
+    for (int i = 0; i < n; ++i)
+    {
+        data[i] = rand();
+    }
+}
+
+void print256(uint32_t* data) {
+    printf("Hex: ");
+    for (int i = 0; i < 8; i++) {
+        const uint32_t v = data[i];
+        printf("%08x ", v);
+    }
+    printf("\n");
+}
+
 int main(int argc, char** argv) {
   char cwd[PATH_MAX];
   if (getcwd(cwd, sizeof(cwd)) != NULL) {
@@ -57,6 +75,79 @@ int main(int argc, char** argv) {
       return -1;
     }
 
+    int threadsPerBlock = 128;
+    int blocksPerGrid   = 1;
+
+    int numIters = 1;
+    int numTowers = 1;
+    const size_t size = 32 * numTowers; // 32 bytes = 32*8 = 256 bits per tower
+
+    uint32_t* h_A = (uint32_t*)malloc(size);
+    uint32_t* h_B = (uint32_t*)malloc(size);
+
+    RandomInit(h_A, 8 * numTowers);
+
+    CUdeviceptr d_A;
+    CUdeviceptr d_B;
+
+    result = cuMemAlloc(&d_A, size);
+    if (result != CUDA_SUCCESS) {
+      printf("Failed to allocate CUDA memory (%s)", cuewErrorString(result));
+      return -1;
+    }
+
+    result = cuMemcpyHtoD(d_A, h_A, size);
+    if (result != CUDA_SUCCESS) {
+      printf("Failed to copy host memory to CUDA memory (%s)", cuewErrorString(result));
+      return -1;
+    }
+
+    result = cuMemAlloc(&d_B, size);
+    if (result != CUDA_SUCCESS) {
+      printf("Failed to allocate CUDA memory (%s)", cuewErrorString(result));
+      return -1;
+    }
+
+    void *args[] = { &numTowers, &numIters, &d_A, &d_B };
+
+    // Launch the CUDA kernel
+    result = cuLaunchKernel(sha256_iter_kernel,  blocksPerGrid, 1, 1, threadsPerBlock, 1, 1, 0, NULL, args, NULL);
+    if (result != CUDA_SUCCESS) {
+      printf("Failed to launch CUDA kernel (%s)", cuewErrorString(result));
+      return -1;
+    }
+
+    result = cuCtxSynchronize();
+    if (result != CUDA_SUCCESS) {
+      printf("Kernel launch failed (%s)", cuewErrorString(result));
+      return -1;
+    }
+
+    result = cuMemcpyDtoH(h_B, d_B, size);
+    if (result != CUDA_SUCCESS) {
+      printf("Failed to copy CUDA memory to host memory (%s)", cuewErrorString(result));
+      return -1;
+    }
+
+    print256(h_A);
+    print256(h_B);
+
+    free(h_A);
+
+    free(h_B);
+
+    result = cuMemFree(d_A);
+    if (result != CUDA_SUCCESS) {
+      printf("Failed to free CUDA memory (%s)", cuewErrorString(result));
+      return -1;
+    }
+
+    result = cuMemFree(d_B);
+    if (result != CUDA_SUCCESS) {
+      printf("Failed to free CUDA memory (%s)", cuewErrorString(result));
+      return -1;
+    }
+
   }
   else {
     printf("CUDA not found\n");
@@ -74,3 +165,4 @@ int main(int argc, char** argv) {
 */
   return 0;
 }
+
