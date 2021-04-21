@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
     }
 
     CUmodule cuModule = 0;
-    result = cuModuleLoad(&cuModule, "/home/cdurham/TL/cpp/TLLib/TLCUDA/sha256_iter.fatbin");
+    result = cuModuleLoad(&cuModule, "sha256_iter.fatbin");
     if (result != CUDA_SUCCESS) {
       printf("Failed to load CUDA module (%s)", cuewErrorString(result));
       return -1;
@@ -85,7 +85,7 @@ int main(int argc, char** argv) {
     int threadsPerBlock = 256;
     int blocksPerGrid   = 68*2;
 
-    int numIters = 10000000;
+    int numIters = 1000000;
     int numTowers = blocksPerGrid * threadsPerBlock;
     const size_t size = 32 * numTowers; // 32 bytes = 32*8 = 256 bits per tower
 

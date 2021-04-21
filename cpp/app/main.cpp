@@ -58,17 +58,23 @@ int main(int argc, char** argv) {
     }
     
 
+    CudaSHA cudaSHA = CudaSHA();
+    cudaSHA.init();
+    cout << "here" << endl;
     const CudaSHA::Availability availability = CudaSHA::check_availablity();
     if(availability == CudaSHA::Available) {
         cout << "Cuda is available" << endl;
+
     } else {
-        cout << "Cuda is not available: " << CudaSHA::availabilityString(availability) << endl;
+        cout << "Cuda is not available: " << CudaSHA::getAvailabilityString(availability) << endl;
     }
 
     uint32_t testState[8] = {
         0xba7816bf, 0x8f01cfea, 0x414140de, 0x5dae2223,
         0xb00361a3, 0x96177a9c, 0xb410ff61, 0xf20015ad
     };
+
+    return 0;
 /*
 #ifdef CUDACOMPILED
     print256This(testState);

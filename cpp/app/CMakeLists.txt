@@ -8,10 +8,9 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 find_package(CUDAToolkit)
-if (CUDAToolkit_FOUND)
-    add_dependencies(TL PTX)
-    target_compile_definitions(${PROJECT_NAME} PUBLIC CUDACOMPILED)
-endif()
+#if (CUDAToolkit_FOUND)
+    #target_compile_definitions(${PROJECT_NAME} PUBLIC CUDACOMPILED)
+#endif()
 
 find_package(Boost COMPONENTS serialization program_options REQUIRED)
 
