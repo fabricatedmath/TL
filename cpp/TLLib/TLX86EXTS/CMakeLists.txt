@@ -1,14 +1,18 @@
-project (TLCPP)
+project (TLX86EXTS)
 
-set(c_source_files ${c_source_files} src/sha256-sse41-sha-x86.c)
+set(c_source_files ${c_source_files} kernels/sha256-sse41-sha-x86.c)
 
-add_library(${PROJECT_NAME} ${c_source_files})
+add_library(${PROJECT_NAME} ${c_source_files} src/x86exts_sha.cpp)
 
 #add_library(tutorial_compiler_flags INTERFACE)
 #target_compile_features(tutorial_compiler_flags INTERFACE cxx_std_11)
 
 target_include_directories( ${PROJECT_NAME}
-    PUBLIC ${PROJECT_SOURCE_DIR}/include
+    PRIVATE ${PROJECT_SOURCE_DIR}/kernels
+)
+
+target_include_directories( ${PROJECT_NAME}
+    PUBLIC ${PROJECT_SOURCE_DIR}/src
 )
 
 #TODO: do this right

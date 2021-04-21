@@ -4,5 +4,3 @@ project(TL)
 add_subdirectory(extern/cuew)
 add_subdirectory(app)
 add_subdirectory(TLLib)
-
-#add_executable(tl main.cpp)

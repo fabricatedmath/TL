@@ -1,8 +1,7 @@
 #include <iostream>
 #include <thread>
-extern "C" {
-#include <sha256-sse41-sha-x86.h>
-}
+
+#include <x86exts_sha.hpp>
 
 #include <mutex>
 #include <boost/asio/post.hpp>
@@ -20,7 +19,7 @@ extern "C" {
 namespace po = boost::program_options;
 
 using namespace std;
-
+/*
 void myTask() {
     auto id = boost::this_thread::get_id();
     cout << "My id is: " << id << endl;
@@ -38,7 +37,7 @@ void myTask() {
     print256(data);
     sha256_iter(1000000000, data);
     print256(data);
-}
+}*/
 
 void print256This(uint32_t* data) {
     printf("Hex: ");
@@ -91,14 +90,13 @@ int main(int argc, char** argv) {
 */
     return 0;
 
-    
     if (sodium_init() < 0) {
         /* panic! the library couldn't be initialized, it is not safe to use */
         return 1; 
     } else {
         uint32_t startHash[8];
         randombytes_buf(startHash, 32);
-        print256(startHash);
+        print256This(startHash);
     }
 
     po::options_description desc("Usage");
@@ -123,7 +121,7 @@ int main(int argc, char** argv) {
     } else {
         cout << "hash level was not set.\n";
     }
-
+/*
     unsigned int n = std::thread::hardware_concurrency();
     std::cout << n << " concurrent threads are supported.\n";
 
@@ -134,4 +132,5 @@ int main(int argc, char** argv) {
     }
 
     workers.join();
+    */
 }
