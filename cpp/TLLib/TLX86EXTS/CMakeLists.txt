@@ -20,6 +20,7 @@ SET(GCC_COVERAGE_COMPILE_FLAGS "-msse4.1 -msha -Wall -O2")
 
 add_definitions(${GCC_COVERAGE_COMPILE_FLAGS})
 
+target_link_libraries (${PROJECT_NAME} cpu_features)
 #target_link_libraries( ${PROJECT_NAME} 
   #cuda
   #nvrtc

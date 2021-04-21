@@ -5,5 +5,5 @@ using namespace std;
 
 int main() {
     cout << "dogs" << endl;
-    cout << CudaSHA::is_available() << endl;
+    cout << CudaSHA::check_availablity() << endl;
 }

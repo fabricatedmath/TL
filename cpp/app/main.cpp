@@ -1,6 +1,7 @@
 #include <iostream>
 #include <thread>
 
+#include <cuda_sha.hpp>
 #include <x86exts_sha.hpp>
 
 #include <mutex>
@@ -10,11 +11,6 @@
 #include <boost/thread.hpp>
 
 #include <sodium.h>
-
-#include <cuew.h>
-
-#ifdef CUDACOMPILED
-#endif //CUDACOMPILED
 
 namespace po = boost::program_options;
 
@@ -55,21 +51,19 @@ const uint32_t initialstate[8] = {
 
 int main(int argc, char** argv) {
 
-    if (cuewInit(CUEW_INIT_CUDA) == CUEW_SUCCESS) {
-        printf("CUDA found\n");
-        printf("NVCC path: %s\n", cuewCompilerPath());
-        printf("NVCC version: %d\n", cuewCompilerVersion());
+    if (X86ExtsSHA::is_available()) {
+        cout << "x86 sse4.1 and sha extensions are available" << endl;
+    } else {
+         cout << "x86 sse4.1 and/or sha extensions are not available" << endl;
     }
-    else {
-        printf("CUDA not found\n");
+    
+
+    const CudaSHA::Availability availability = CudaSHA::check_availablity();
+    if(availability == CudaSHA::Available) {
+        cout << "Cuda is available" << endl;
+    } else {
+        cout << "Cuda is not available: " << CudaSHA::availabilityString(availability) << endl;
     }
-
-
-    #ifdef CUDACOMPILED
-        cout << "CUDACOMPILED" << endl;
-    #else 
-        cout << "NOT CUDACOMPILED" << endl;
-    #endif
 
     uint32_t testState[8] = {
         0xba7816bf, 0x8f01cfea, 0x414140de, 0x5dae2223,

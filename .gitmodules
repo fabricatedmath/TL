@@ -4,3 +4,6 @@
 [submodule "cpp/extern/cuew"]
 	path = cpp/extern/cuew
 	url = git@github.com:fabricatedmath/cuew.git
+[submodule "cpp/extern/cpu_features"]
+	path = cpp/extern/cpu_features
+	url = git@github.com:fabricatedmath/cpu_features.git

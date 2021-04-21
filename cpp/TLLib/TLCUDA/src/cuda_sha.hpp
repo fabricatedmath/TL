@@ -2,5 +2,10 @@
 
 class CudaSHA {
 public:
-    static bool is_available();
+    enum Availability {
+        Available, NotCompiled, NoNvidiaDriver
+    };
+
+    static const char * availabilityString(const Availability availability);
+    static Availability check_availablity();
 };
