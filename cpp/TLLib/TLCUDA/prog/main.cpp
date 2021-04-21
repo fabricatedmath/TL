@@ -4,6 +4,13 @@
 #include <stdio.h>
 #include <limits.h>
 
+#include <iostream>
+using namespace std;
+
+#include <chrono>
+using namespace std::chrono;
+
+
 #include <cuew.h>
 
 // Allocates an array with random float entries.
@@ -75,17 +82,19 @@ int main(int argc, char** argv) {
       return -1;
     }
 
-    int threadsPerBlock = 128;
-    int blocksPerGrid   = 1;
+    int threadsPerBlock = 256;
+    int blocksPerGrid   = 68*2;
 
-    int numIters = 1;
-    int numTowers = 1;
+    int numIters = 10000000;
+    int numTowers = blocksPerGrid * threadsPerBlock;
     const size_t size = 32 * numTowers; // 32 bytes = 32*8 = 256 bits per tower
 
     uint32_t* h_A = (uint32_t*)malloc(size);
     uint32_t* h_B = (uint32_t*)malloc(size);
 
     RandomInit(h_A, 8 * numTowers);
+
+    cout << "random done" << endl;
 
     CUdeviceptr d_A;
     CUdeviceptr d_B;
@@ -109,7 +118,13 @@ int main(int argc, char** argv) {
     }
 
     void *args[] = { &numTowers, &numIters, &d_A, &d_B };
+    result = cuCtxSynchronize();
+    if (result != CUDA_SUCCESS) {
+      printf("Kernel launch failed (%s)", cuewErrorString(result));
+      return -1;
+    }
 
+    auto t1 = high_resolution_clock::now();
     // Launch the CUDA kernel
     result = cuLaunchKernel(sha256_iter_kernel,  blocksPerGrid, 1, 1, threadsPerBlock, 1, 1, 0, NULL, args, NULL);
     if (result != CUDA_SUCCESS) {
@@ -122,6 +137,16 @@ int main(int argc, char** argv) {
       printf("Kernel launch failed (%s)", cuewErrorString(result));
       return -1;
     }
+    auto t2 = high_resolution_clock::now();
+
+    /* Getting number of milliseconds as an integer. */
+    auto ms_int = duration_cast<milliseconds>(t2 - t1);
+
+    /* Getting number of milliseconds as a double. */
+    duration<double, std::milli> ms_double = t2 - t1;
+
+    std::cout << ms_int.count() << "ms" << endl;
+    std::cout << ms_double.count() << "ms" << endl;
 
     result = cuMemcpyDtoH(h_B, d_B, size);
     if (result != CUDA_SUCCESS) {
@@ -133,7 +158,6 @@ int main(int argc, char** argv) {
     print256(h_B);
 
     free(h_A);
-
     free(h_B);
 
     result = cuMemFree(d_A);

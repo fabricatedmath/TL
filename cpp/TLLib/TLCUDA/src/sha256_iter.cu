@@ -342,7 +342,7 @@ hmix(beu32* a,
 // See https://en.wikipedia.org/wiki/SHA-2#Pseudocode
 //
 KERNEL_QUALIFIERS
-LAUNCH_BOUNDS
+//LAUNCH_BOUNDS
 void
 sha256_iter_kernel(const int numTowers, const int iter, const beu32* const d_in, beu32* const d_out)
 {
