@@ -1,8 +1,8 @@
 #include <iostream>
 #include <thread>
-extern "C" {
-#include <sha256-sse41-sha-x86.h>
-}
+
+#include <cuda_sha.hpp>
+#include <x86exts_sha.hpp>
 
 #include <mutex>
 #include <boost/asio/post.hpp>
@@ -12,15 +12,10 @@ extern "C" {
 
 #include <sodium.h>
 
-#include <cuew.h>
-
-#ifdef CUDACOMPILED
-#endif //CUDACOMPILED
-
 namespace po = boost::program_options;
 
 using namespace std;
-
+/*
 void myTask() {
     auto id = boost::this_thread::get_id();
     cout << "My id is: " << id << endl;
@@ -38,7 +33,7 @@ void myTask() {
     print256(data);
     sha256_iter(1000000000, data);
     print256(data);
-}
+}*/
 
 void print256This(uint32_t* data) {
     printf("Hex: ");
@@ -56,21 +51,19 @@ const uint32_t initialstate[8] = {
 
 int main(int argc, char** argv) {
 
-    if (cuewInit(CUEW_INIT_CUDA) == CUEW_SUCCESS) {
-        printf("CUDA found\n");
-        printf("NVCC path: %s\n", cuewCompilerPath());
-        printf("NVCC version: %d\n", cuewCompilerVersion());
+    if (X86ExtsSHA::is_available()) {
+        cout << "x86 sse4.1 and sha extensions are available" << endl;
+    } else {
+         cout << "x86 sse4.1 and/or sha extensions are not available" << endl;
     }
-    else {
-        printf("CUDA not found\n");
+    
+
+    const CudaSHA::Availability availability = CudaSHA::check_availablity();
+    if(availability == CudaSHA::Available) {
+        cout << "Cuda is available" << endl;
+    } else {
+        cout << "Cuda is not available: " << CudaSHA::availabilityString(availability) << endl;
     }
-
-
-    #ifdef CUDACOMPILED
-        cout << "CUDACOMPILED" << endl;
-    #else 
-        cout << "NOT CUDACOMPILED" << endl;
-    #endif
 
     uint32_t testState[8] = {
         0xba7816bf, 0x8f01cfea, 0x414140de, 0x5dae2223,
@@ -91,14 +84,13 @@ int main(int argc, char** argv) {
 */
     return 0;
 
-    
     if (sodium_init() < 0) {
         /* panic! the library couldn't be initialized, it is not safe to use */
         return 1; 
     } else {
         uint32_t startHash[8];
         randombytes_buf(startHash, 32);
-        print256(startHash);
+        print256This(startHash);
     }
 
     po::options_description desc("Usage");
@@ -123,7 +115,7 @@ int main(int argc, char** argv) {
     } else {
         cout << "hash level was not set.\n";
     }
-
+/*
     unsigned int n = std::thread::hardware_concurrency();
     std::cout << n << " concurrent threads are supported.\n";
 
@@ -134,4 +126,5 @@ int main(int argc, char** argv) {
     }
 
     workers.join();
+    */
 }
