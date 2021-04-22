@@ -4,15 +4,16 @@
     #include <cuew.h>
 #endif
 
+#include <stdint.h>
+
 class CudaSHA {
 private:
 #ifdef CUDA_COMPILED
     CUdevice cuDevice;
     CUcontext cuContext;
-    CUmodule cuModule;
+    // CUmodule cuModule; // Can't store this in class? free() errors..
     CUfunction sha256_iter_kernel;
 
-    CUdeviceptr d_mem;
 #endif
 public:
     enum Availability {
@@ -25,4 +26,8 @@ public:
     CudaSHA();
 
     int init();
+
+    int createChains(const int numTowers, const int numIters, uint32_t* startingHashes, uint32_t* endingHashes);
+
+    ~CudaSHA();
 };

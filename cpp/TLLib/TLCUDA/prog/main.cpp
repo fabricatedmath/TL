@@ -172,6 +172,7 @@ int main(int argc, char** argv) {
       return -1;
     }
 
+    cuCtxDestroy(cuContext);
   }
   else {
     printf("CUDA not found\n");

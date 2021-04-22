@@ -57,14 +57,23 @@ int main(int argc, char** argv) {
          cout << "x86 sse4.1 and/or sha extensions are not available" << endl;
     }
     
-
-    CudaSHA cudaSHA = CudaSHA();
-    cudaSHA.init();
-    cout << "here" << endl;
     const CudaSHA::Availability availability = CudaSHA::check_availablity();
     if(availability == CudaSHA::Available) {
         cout << "Cuda is available" << endl;
+        CudaSHA cudaSHA;// = new CudaSHA();
+        int result = cudaSHA.init();
+        if (result != 0) {
+            cout << "Failed to init" << endl;
+            return -1;
+        }
 
+        result = cudaSHA.createChains(10,10,NULL, NULL);
+        if (result != 0) {
+            cout << "Failed to launch" << endl;
+            return -1;
+        }
+
+        //delete cudaSHA;
     } else {
         cout << "Cuda is not available: " << CudaSHA::getAvailabilityString(availability) << endl;
     }
