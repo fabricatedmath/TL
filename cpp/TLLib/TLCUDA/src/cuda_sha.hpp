@@ -27,7 +27,7 @@ public:
 
     int init();
 
-    int createChains(const int numTowers, const int numIters, uint32_t* startingHashes, uint32_t* endingHashes);
+    int createChains(const int numTowers, const int numIters, uint32_t* const startingHashes, uint32_t* const endingHashes);
 
     ~CudaSHA();
 };

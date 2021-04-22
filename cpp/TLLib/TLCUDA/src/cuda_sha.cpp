@@ -83,11 +83,13 @@ int CudaSHA::init() {
   return 0;
 }
 #else
-void CudaSHA::init() {}
+int CudaSHA::init() {
+  return -1;
+}
 #endif
 
 #ifdef CUDA_COMPILED
-int CudaSHA::createChains(const int numTowers, const int numIters, uint32_t* startingHashes, uint32_t* endingHashes) {
+int CudaSHA::createChains(const int numTowers, const int numIters, uint32_t* const startingHashes, uint32_t* const endingHashes) {
   int threadsPerBlock = 256;
   int blocksPerGrid   = 68*2;
 
@@ -142,7 +144,7 @@ int CudaSHA::createChains(const int numTowers, const int numIters, uint32_t* sta
   return 0;
 }
 #else
-void CudaSHA::createChains(const int numTowers, const int numIters, uint32_t* startingHashes, uint32_t* endingHashes) {}
+void CudaSHA::createChains(const int numTowers, const int numIters, uint32_t* const startingHashes, uint32_t* const endingHashes) {}
 #endif
 
 #ifdef CUDA_COMPILED

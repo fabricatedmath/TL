@@ -12,6 +12,8 @@
 
 #include <sodium.h>
 
+#include <tl_util.hpp>
+
 namespace po = boost::program_options;
 
 using namespace std;
@@ -35,21 +37,15 @@ void myTask() {
     print256(data);
 }*/
 
-void print256This(uint32_t* data) {
-    printf("Hex: ");
-    for (int i = 0; i < 8; i++) {
-        const uint32_t v = data[i];
-        printf("%08x ", v);
-    }
-    printf("\n");
-}
-
 const uint32_t initialstate[8] = {
     0xba7816bf, 0x8f01cfea, 0x414140de, 0x5dae2223,
     0xb00361a3, 0x96177a9c, 0xb410ff61, 0xf20015ad
 };
 
 int main(int argc, char** argv) {
+
+    print256(abcSHA256);
+    print256(abcSHA256_next);
 
     if (X86ExtsSHA::is_available()) {
         cout << "x86 sse4.1 and sha extensions are available" << endl;
@@ -78,25 +74,6 @@ int main(int argc, char** argv) {
         cout << "Cuda is not available: " << CudaSHA::getAvailabilityString(availability) << endl;
     }
 
-    uint32_t testState[8] = {
-        0xba7816bf, 0x8f01cfea, 0x414140de, 0x5dae2223,
-        0xb00361a3, 0x96177a9c, 0xb410ff61, 0xf20015ad
-    };
-
-    return 0;
-/*
-#ifdef CUDACOMPILED
-    print256This(testState);
-
-    const int errorCode = sha256_iter_cuda(1, 1, testState);
-    if (errorCode != 0) {
-        cout << getErrorString(errorCode) << endl;
-        exit(EXIT_FAILURE);
-    }
-
-    print256This(testState);
-#endif //CUDACOMPILED
-*/
     return 0;
 
     if (sodium_init() < 0) {
@@ -105,7 +82,7 @@ int main(int argc, char** argv) {
     } else {
         uint32_t startHash[8];
         randombytes_buf(startHash, 32);
-        print256This(startHash);
+        print256(startHash);
     }
 
     po::options_description desc("Usage");
