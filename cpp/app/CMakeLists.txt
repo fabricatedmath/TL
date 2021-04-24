@@ -10,8 +10,6 @@ target_link_libraries(${PROJECT_NAME}
 
 find_package(Boost COMPONENTS serialization program_options REQUIRED)
 
-#find_package(Sodium REQUIRED)
-
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} sodium)
 

@@ -16,21 +16,19 @@ import qualified Crypto.Hash as Hash (hashWith, SHA256(..))
 
 import qualified Crypto.Random.Types as CRT (getRandomBytes)
 
-import Data.Bits (xor)
+import Data.Bits (shiftR, xor)
 
 import qualified Data.ByteArray as ByteArray
 
 import Data.ByteString (ByteString)
-import qualified Data.ByteString as BS (copy, map, pack, packZipWith, unpack)
+import qualified Data.ByteString as BS (mapAccumR, copy, pack, packZipWith, unpack)
 import Data.ByteString.Base16 (encodeBase16')
-
 import qualified Data.ByteString.Unsafe as BS (unsafeUseAsCString)
 
 import Data.Char (chr)
-
 import Data.Proxy (Proxy(..))
-
 import Data.Serialize
+import Data.Word (Word16)
 
 import Foreign.C.String (CString)
 
@@ -128,7 +126,13 @@ randomHash = Hash <$> CRT.getRandomBytes 32
 
 -- Add 1 to each byte (with overflow) and then hash to yield our checkpoint
 calcChecksum :: Hashable a => HashMode a -> Hash -> Checksum
-calcChecksum mode = Checksum . hashOnce mode . Hash . BS.map (+1) . unHash
+calcChecksum mode = Checksum . hashOnce mode . Hash . incrementBS . unHash
+
+  -- uses Word16 to store overflow in 9th bit and shifts 8 bits to add to next byte
+incrementBS :: ByteString -> ByteString
+incrementBS = snd . BS.mapAccumR f (1 :: Word16)
+  where f acc w = (shiftR acc' 8, fromIntegral acc')
+          where acc' = acc + fromIntegral w
 
 verifyChecksum :: Hashable a => HashMode a -> Checksum -> Hash -> Bool
 verifyChecksum mode checksum hash = checksum == calcChecksum mode hash
@@ -143,3 +147,4 @@ decrypt hashKey (EncryptedHash eHash) = unEncryptedHash $ encrypt hashKey eHash
 
 unsafeUseAsCString :: Hash -> (CString -> IO a) -> IO a
 unsafeUseAsCString = BS.unsafeUseAsCString . unHash
+
