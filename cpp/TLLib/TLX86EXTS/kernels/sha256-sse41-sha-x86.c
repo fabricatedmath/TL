@@ -10,37 +10,10 @@ const uint32_t initialstate[8] = {
     0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
 };
 
-void flipEndianness(uint32_t* data) {
-    const __m128i endianshufmask =  _mm_set_epi8(12,13,14,15,8,9,10,11,4,5,6,7,0,1,2,3);
-    __m128i HALF1 = _mm_loadu_si128((const __m128i*) (data+0));
-    __m128i HALF2 = _mm_loadu_si128((const __m128i*) (data+4));
-
-    HALF1 = _mm_shuffle_epi8(HALF1, endianshufmask);
-    HALF2 = _mm_shuffle_epi8(HALF2, endianshufmask);
-
-    _mm_storeu_si128((__m128i*) (data+0), HALF1);
-    _mm_storeu_si128((__m128i*) (data+4), HALF2);
-}
-
-void print256(uint32_t* data) {
-    printf("Hex: ");
-    for (int i = 0; i < 8; i++) {
-        const uint32_t v = data[i];
-        printf("%08x ", v);
-    }
-    printf("\n");
-}
-
-const uint32_t padding[8] = 
-    { 0x80000000
-    , 0x00000000
-    , 0x00000000
-    , 0x00000000
-    , 0x00000000
-    , 0x00000000
-    , 0x00000000
-    , 0x00000100
-    };
+const uint32_t padding[8] = { 
+    0x80000000, 0x00000000, 0x00000000, 0x00000000,
+    0x00000000, 0x00000000, 0x00000000, 0x00000100
+};
 
 void sha256_iter(const int numIter, uint32_t* const data) {
     __m128i STATE0, STATE1;
