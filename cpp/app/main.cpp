@@ -1,5 +1,7 @@
 #include <iostream>
 #include <thread>
+#include <chrono>
+using namespace std::chrono;
 
 #include <cuda_sha.hpp>
 #include <x86exts_sha.hpp>
@@ -43,9 +45,56 @@ const uint32_t initialstate[8] = {
 };
 
 int main(int argc, char** argv) {
+    uint32_t initialABC[8] = {
+        0xba7816bf, 0x8f01cfea, 0x414140de, 0x5dae2223,
+        0xb00361a3, 0x96177a9c, 0xb410ff61, 0xf20015ad
+    };
+    {
+        auto t1 = high_resolution_clock::now();
+        X86ExtsSHA::iterateHash(2, initialABC);
+        auto t2 = high_resolution_clock::now();
+        auto ms_int = duration_cast<milliseconds>(t2 - t1);
 
-    print256(abcSHA256);
-    print256(abcSHA256_next);
+        /* Getting number of milliseconds as a double. */
+        duration<double, std::milli> ms_double = t2 - t1;
+
+        std::cout << ms_int.count() << "ms\n";
+        std::cout << ms_double.count() << "ms\n";
+    }
+
+    uint32_t initialABC2[8] = {
+        0xba7816bf, 0x8f01cfea, 0x414140de, 0x5dae2223,
+        0xb00361a3, 0x96177a9c, 0xb410ff61, 0xf20015ad
+    };
+
+    printHash(initialABC);
+    printHash(initialABC2);
+
+    return 0;
+
+
+    if (sodium_init() < 0) {
+        /* panic! the library couldn't be initialized, it is not safe to use */
+        return 1; 
+    }
+
+    #define MESSAGE ((const unsigned char *) "abc")
+    #define MESSAGE_LEN 3
+
+    unsigned char out[crypto_hash_sha256_BYTES];
+
+    crypto_hash_sha256(out, MESSAGE, MESSAGE_LEN);
+
+    printHash(reinterpret_cast<uint32_t*>(out));
+
+    uint32_t hash[16];
+
+    strongRandomHashes(hash, 2);
+    printHashes(hash, 2);
+
+
+    printHash(abcSHA256);
+    printHash(abcSHA256_next);
 
     if (X86ExtsSHA::is_available()) {
         cout << "x86 sse4.1 and sha extensions are available" << endl;
@@ -82,7 +131,7 @@ int main(int argc, char** argv) {
     } else {
         uint32_t startHash[8];
         randombytes_buf(startHash, 32);
-        print256(startHash);
+        printHash(startHash);
     }
 
     po::options_description desc("Usage");

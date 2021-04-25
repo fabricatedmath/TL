@@ -15,4 +15,10 @@ const uint32_t abcSHA256_next[8] {
 void weakRandomInit(uint32_t* const data, const int n);
 void weakRandomInit256(uint32_t* const data, const int n);
 
-void print256(const uint32_t* const data);
+void strongRandomHash(uint32_t* const data);
+void strongRandomHashes(uint32_t* const data, const int n);
+
+void printHash(const uint32_t* const data);
+void printHashes(const uint32_t* const data, const int n);
+
+//void checksum()

@@ -9,8 +9,9 @@ using namespace cpu_features;
 static const X86Features features = GetX86Info().features;
 
 bool X86ExtsSHA::is_available() {
-    //bool sha_supported = sha_ext_support();
-    //bool sse41_supported = sse41_ext_support();
-    //features.sha && features.sse4_1
     return features.sse4_1 && features.sha;
+}
+
+void X86ExtsSHA::iterateHash(const int numIter, uint32_t* startingHash) {
+    sha256_iter(numIter, startingHash);
 }
