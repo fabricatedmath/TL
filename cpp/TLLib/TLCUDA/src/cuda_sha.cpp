@@ -4,7 +4,7 @@
 #endif
 
 #include <cuda_sha.hpp>
-
+#include <algorithm>
 #include<stdio.h>
 
 const char * CudaSHA::getAvailabilityString(const CudaSHA::Availability availability) {
@@ -67,7 +67,7 @@ int CudaSHA::init() {
   }
 
   CUmodule cuModule = 0;
-  result = cuModuleLoad(&cuModule, "sha256_iter.fatbin");
+  result = cuModuleLoad(&cuModule, "../sha256_iter.fatbin");
   if (result != CUDA_SUCCESS) {
     printf("Failed to load CUDA module (%s)", cuewErrorString(result));
     return -1;
@@ -89,18 +89,17 @@ int CudaSHA::init() {
 #endif
 
 #ifdef CUDA_COMPILED
-int CudaSHA::createChains(const int numTowers, const int numIters, uint32_t* const startingHashes, uint32_t* const endingHashes) {
-  int threadsPerBlock = 256;
-  int blocksPerGrid   = 68*2;
 
-  int numIters2 = 1000000;
-  int numTowers2 = blocksPerGrid * threadsPerBlock;
+int CudaSHA::createChains(const int numTowers, const int numIters, uint32_t* const startingHashes, uint32_t* const endingHashes) {
+  const int maxThreadsPerBlock = 256;
+  const int roundedThreadsPerBlock = ((numTowers + 32 - 1) / 32) * 32; // divisible by 32
+  const int threadsPerBlock = std::min(roundedThreadsPerBlock, maxThreadsPerBlock);
+  const int blocksPerGrid = ((numTowers + threadsPerBlock - 1) / threadsPerBlock);
+
+  printf("Running %d threads and %d blocks\n", threadsPerBlock, blocksPerGrid);
   const size_t size = 32 * numTowers; // 32 bytes = 32*8 = 256 bits per tower
 
   CUdeviceptr d_mem;
-
-  uint32_t* h_A = (uint32_t*)malloc(size);
-  uint32_t* h_B = (uint32_t*)malloc(size);
 
   CUresult result = cuMemAlloc(&d_mem, size);
   if (result != CUDA_SUCCESS) {
@@ -108,13 +107,15 @@ int CudaSHA::createChains(const int numTowers, const int numIters, uint32_t* con
     return -1;
   }
 
-  result = cuMemcpyHtoD(d_mem, h_A, size);
+  result = cuMemcpyHtoD(d_mem, startingHashes, size);
   if (result != CUDA_SUCCESS) {
     printf("Failed to copy host memory to CUDA memory (%s)", cuewErrorString(result));
     return -1;
   }
+  int numTowersArg = numTowers;
+  int numItersArg = numIters;
 
-  void *args[] = { &numTowers2, &numIters2, &d_mem, &d_mem };
+  void *args[] = { &numTowersArg, &numItersArg, &d_mem, &d_mem };
 
   // Launch the CUDA kernel
   result = cuLaunchKernel(sha256_iter_kernel,  blocksPerGrid, 1, 1, threadsPerBlock, 1, 1, 0, NULL, args, NULL);
@@ -129,7 +130,7 @@ int CudaSHA::createChains(const int numTowers, const int numIters, uint32_t* con
     return -1;
   }
 
-  result = cuMemcpyDtoH(h_B, d_mem, size);
+  result = cuMemcpyDtoH(endingHashes, d_mem, size);
   if (result != CUDA_SUCCESS) {
     printf("Failed to copy CUDA memory to host memory (%s)", cuewErrorString(result));
     return -1;
@@ -144,7 +145,7 @@ int CudaSHA::createChains(const int numTowers, const int numIters, uint32_t* con
   return 0;
 }
 #else
-void CudaSHA::createChains(const int numTowers, const int numIters, uint32_t* const startingHashes, uint32_t* const endingHashes) {}
+int CudaSHA::createChains(const int numTowers, const int numIters, uint32_t* const startingHashes, uint32_t* const endingHashes) { return -1; }
 #endif
 
 #ifdef CUDA_COMPILED

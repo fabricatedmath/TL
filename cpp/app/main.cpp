@@ -16,6 +16,8 @@ using namespace std::chrono;
 
 #include <tl_util.hpp>
 
+#include <test.hpp>
+
 namespace po = boost::program_options;
 
 using namespace std;
@@ -44,11 +46,36 @@ const uint32_t initialstate[8] = {
     0xb00361a3, 0x96177a9c, 0xb410ff61, 0xf20015ad
 };
 
+void doHash(Hashable* hashable) {
+    hashable->hash();
+}
+
 int main(int argc, char** argv) {
+/*
+    Hashable* hashableCPU = new CPU();
+    hashableCPU->hash();
+
+    Hashable* hashableGPU = new GPU();
+    hashableGPU->hash();
+
+    doHash(new GPU());
+    doHash(new CPU());
+*/
     uint32_t initialABC[8] = {
         0xba7816bf, 0x8f01cfea, 0x414140de, 0x5dae2223,
         0xb00361a3, 0x96177a9c, 0xb410ff61, 0xf20015ad
     };
+
+    CudaSHA::check_availablity();
+    CudaSHA* cudaSHA = new CudaSHA;
+    cudaSHA->init();
+    cudaSHA->createChains(1,1,initialABC,initialABC);
+    delete cudaSHA;
+
+    printHash(initialABC);
+    return 0;
+
+
     {
         auto t1 = high_resolution_clock::now();
         X86ExtsSHA::iterateHash(2, initialABC);
