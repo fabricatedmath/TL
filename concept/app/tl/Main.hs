@@ -5,67 +5,41 @@ import Data.Monoid
 import Options.Applicative
 
 import TL.Create
+import TL.Solve
+import TL.Util
 
-data Mode = Slow | Fast
+data Purpose = PurposeCreate Create | PurposeSolve Solve
   deriving Show
 
-data Concurrency = Serial | Parallel
-    deriving Show
-
-data TL
-  = Create Int Int FilePath FilePath
-  | Solve FilePath
-  deriving (Eq, Show)
-
-create :: Parser TL
-create = Create 
-  <$> option auto
-    ( long "numtowers"
-    <> short 'n'
-    <> help "Number of towers to build"
-    <> metavar "INT"
-    )
-  <*> option auto
-    ( long "iters"
-    <> short 'i'
-    <> help "Number of hash iterations per tower"
-    <> metavar "INT"
-    )
-  <*> strOption
-    ( long "file"
-    <> short 'f'
-    <> help "File to encrypt with TimeLock"
-    <> metavar "FILENAME"
-    )
-  <*> strOption
-    ( long "out"
-    <> short 'o'
-    <> help "Name of TimeLock file to output"
-    <> metavar "FILENAME"
-    )
-
-solve :: Parser TL
-solve = Solve 
-  <$> strOption
-  ( long "file"
-  <> short 'i'
-  <> help "TimeLock file to solve"
-  <> metavar "FILENAME"
-  )
+data TL = TL Mode Purpose
+  deriving Show
 
 tl :: Parser TL
-tl = subparser
+tl = TL <$> mode <*> purpose
+
+mode :: Parser Mode
+mode = fromBool Slow Fast <$> switch
+        ( long "slow"
+        <> short 's'
+        <> help "Switch to slow mode hashing (no x86-sse4.1-sha extensions)"
+        <> showDefault
+        )
+
+purpose :: Parser Purpose
+purpose = subparser
        ( command "create"
-         (info (create <**> helper)
+         (info (PurposeCreate <$> createParser <**> helper)
                (progDesc "Create a TimeLock file"))
       <> command "solve"
-         (info (solve <**> helper)
+         (info (PurposeSolve <$> solveParser <**> helper)
                (progDesc "Solve a TimeLock file"))
        )
 
 run :: TL -> IO ()
-run (Create numTowers numIters inFile outFile) = putStrLn $ "Creating TimeLock file with " ++ show numTowers ++ " towers with " ++ show numIters ++ " iterations per tower"
-run (Solve inFile) = putStrLn $ "Solving TimeLock file \'" <> inFile <> "\'"
+run (TL mode purpose) = 
+  case purpose of
+    (PurposeCreate c) -> create mode c
+    (PurposeSolve s) -> solve mode s
 
 opts :: ParserInfo TL
 opts = 
