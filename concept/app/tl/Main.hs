@@ -4,6 +4,12 @@ import Data.List
 import Data.Monoid
 import Options.Applicative
 
+data Mode = Slow | Fast
+  deriving Show
+
+data Concurrency = Serial | Parallel
+    deriving Show
+
 data TL
   = Create Int Int FilePath FilePath
   | Solve FilePath
