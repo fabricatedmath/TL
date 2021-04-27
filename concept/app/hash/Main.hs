@@ -20,8 +20,8 @@ main =
         Just (hash, chain) <- createChain slowMode 10 10
 
         v <- runExceptT $ do
-            encrypt "dogs.enc" "dogs.txt" (hash, chain)
-            decrypt "dogs.dec" "dogs.enc" hash
+            encryptTLA "dogs.enc" "dogs.txt" (hash, chain)
+            decryptTLA "dogs.dec" "dogs.enc" hash
             liftIO $ putStrLn "Sucessfully decrypted TLA file"
 
         print v

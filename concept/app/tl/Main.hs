@@ -4,6 +4,8 @@ import Data.List
 import Data.Monoid
 import Options.Applicative
 
+import TL.Create
+
 data Mode = Slow | Fast
   deriving Show
 
@@ -67,7 +69,6 @@ run (Solve inFile) = putStrLn $ "Solving TimeLock file \'" <> inFile <> "\'"
 
 opts :: ParserInfo TL
 opts = 
-  --info (tl <**> helper) idm
   info (tl <**> helper) 
   ( fullDesc
   <> progDesc "TimeLock"

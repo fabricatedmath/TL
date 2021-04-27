@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 module Crypto.TL.Crypt
-  ( decrypt, encrypt
+  ( decryptTLA, encryptTLA
   ) where
 
 import Control.Monad (when)
@@ -20,26 +20,26 @@ import System.IO (withFile, IOMode(ReadMode))
 import Crypto.TL.Chain (ChainHead, getNumChainBytes)
 import Crypto.TL.Primitives (Hash, unsafeUseAsCString)
 
-encrypt
+encryptTLA
   :: (MonadIO m, MonadError String m)
   => FilePath -- targetFile
   -> FilePath -- sourceFile
   -> (Hash, ChainHead) 
   -> m ()
-encrypt targetFile sourceFile (hash, chain) = 
+encryptTLA targetFile sourceFile (hash, chain) = 
   do
     let bs = encode chain
     liftIO $ BS.writeFile targetFile bs
     errCode <- liftIO $ encryptWithOffset targetFile sourceFile (BS.length bs) hash
     when (errCode /= 0) $ throwError "Failed to encrypt file"
 
-decrypt
+decryptTLA
   :: (MonadIO m, MonadError String m)
   => FilePath -- targetFile
   -> FilePath -- sourceFile
   -> Hash
   -> m ()
-decrypt targetFile sourceFile hash = 
+decryptTLA targetFile sourceFile hash = 
   do
     numBytes <- getChainNumBytes sourceFile
     errCode <- liftIO $ decryptWithOffset targetFile sourceFile numBytes hash
