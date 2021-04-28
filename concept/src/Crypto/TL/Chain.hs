@@ -3,25 +3,25 @@
 module Crypto.TL.Chain 
   ( createChain, solveChain, solveChain'
   , ChainHead, Tower(..), foldTowers
-  , getNumChainBytes
+  , getNumChainBytes, numTowersInChain, numHashesInChain
   ) where
 
 import Crypto.TL.Chain.Internal (Tower(..), ChainHead(..), Chain(..), getNumChainBytes)
 import Crypto.TL.Primitives 
 
 import Control.Monad (replicateM, unless)
-import Control.Monad.Except (MonadError(..), runExcept)
+import Control.Monad.Except (MonadError(..))
 
 import Data.Foldable (foldl')
 
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 
-solveChain :: Hashable a => HashMode a -> ChainHead -> Either String Hash
-solveChain mode chain = runExcept $ solveChain' noreport noreport mode chain
+solveChain :: (Hashable a, MonadError String m) => HashMode a -> ChainHead -> m Hash
+solveChain mode chain = solveChain' noreport noreport mode chain
     where noreport = const $ return ()
 
 solveChain' 
-  :: (Hashable a, Monad m, MonadError String m) 
+  :: (Hashable a, MonadError String m) 
   => (Int -> m ()) -- report starting on a tower of length Int
   -> (Hash -> m ()) -- report tower solved and verified
   -> HashMode a 
@@ -49,6 +49,20 @@ createChain mode n i =
     return $ do
       towers <- mtowers
       return $ towers `seq` foldTowers mode towers
+
+numTowersInChain :: ChainHead -> Int
+numTowersInChain (ChainHead _ _ _ chain) = go 1 chain
+  where 
+    go i Empty = i
+    go i (Chain _ _ _ c) = i' `seq` go i' c
+      where i' = i+1
+
+numHashesInChain :: ChainHead -> Int
+numHashesInChain (ChainHead n' _ _ chain) = go n' chain
+  where 
+    go i Empty = i
+    go i (Chain n _ _ c) = i' `seq` go i' c
+      where i' = i+n
 
 foldTowers :: Hashable a => HashMode a -> NonEmpty Tower -> (Hash, ChainHead)
 foldTowers mode (t :| ts) = (towerEnd t, chain)

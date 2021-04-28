@@ -5,7 +5,7 @@ module Crypto.TL
   , module Crypto.TL.Primitives
   ) where
 
-import Crypto.TL.Chain (ChainHead, createChain, solveChain)
+import Crypto.TL.Chain (ChainHead, createChain, solveChain, solveChain', numTowersInChain, numHashesInChain)
 import Crypto.TL.Chain.Parallel (createChainParallel)
 import Crypto.TL.Crypt (encryptTLA, decryptTLA)
 import Crypto.TL.Primitives 

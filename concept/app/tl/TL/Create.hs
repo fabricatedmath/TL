@@ -48,7 +48,7 @@ createParser = Create
 create :: Mode -> Create -> IO ()
 create mode (Create concurrency numTowers numIters inFile outFile) = do
   putStrLn "Creating TimeLock Archive (TLA) file.."
-  putStrLn "Creating Chain.."
+  putStrLn $ "Creating Chain with " <> show (numIters * numTowers) <> " hashes"
   mchain <- getChainingFunc mode concurrency numTowers numIters
   case mchain of
     Nothing -> putStrLn "Failed to create chain"
