@@ -7,6 +7,9 @@ int
 encrypt_offset(const char *target_file, const char *source_file, const long int offset,
         const unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES])
 {
+    if (sodium_init() != 0) {
+        return -1;
+    }
     unsigned char  buf_in[CHUNK_SIZE];
     unsigned char  buf_out[CHUNK_SIZE + crypto_secretstream_xchacha20poly1305_ABYTES];
     unsigned char  header[crypto_secretstream_xchacha20poly1305_HEADERBYTES];
@@ -44,6 +47,9 @@ int
 decrypt_offset(const char *target_file, const char *source_file, const long int offset,
         const unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES])
 {
+    if (sodium_init() != 0) {
+        return -1;
+    }
     unsigned char  buf_in[CHUNK_SIZE + crypto_secretstream_xchacha20poly1305_ABYTES];
     unsigned char  buf_out[CHUNK_SIZE];
     unsigned char  header[crypto_secretstream_xchacha20poly1305_HEADERBYTES];
@@ -83,22 +89,3 @@ ret:
     fclose(fp_s);
     return ret;
 }
-/*
-int
-main(void)
-{
-    unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES];
-
-    if (sodium_init() != 0) {
-        return 1;
-    }
-    crypto_secretstream_xchacha20poly1305_keygen(key);
-    if (encrypt_offset("/tmp/encrypted", "/tmp/original", 0, key) != 0) {
-        return 1;
-    }
-    if (decrypt_offset("/tmp/decrypted", "/tmp/encrypted", 0, key) != 0) {
-        return 1;
-    }
-    return 0;
-}
-*/

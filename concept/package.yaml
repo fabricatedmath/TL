@@ -42,52 +42,13 @@ library:
   extra-libraries: sodium
   ghc-options:
     - -Wall
-#    - -Werror
+    - -Werror
     - -O2
 
 executables:
   tl:
     main:                Main.hs
     source-dirs:         app/tl
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - concept
-  concept-chain-exe:
-    main:                Main.hs
-    source-dirs:         app/chain
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - concept
-
-  concept-hash-exe:
-    main:                Main.hs
-    source-dirs:         app/hash
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - concept
-
-  concept-create-exe:
-    main:                Main.hs
-    source-dirs:         app/create
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - concept
-
-  concept-solve-exe:
-    main:                Main.hs
-    source-dirs:         app/solve
     ghc-options:
     - -threaded
     - -rtsopts

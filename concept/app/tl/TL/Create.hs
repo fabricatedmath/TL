@@ -1,8 +1,12 @@
 module TL.Create where
 
+import Control.Monad.Except (liftIO, runExceptT)
+
 import Options.Applicative
 
 import TL.Util
+
+import Crypto.TL
 
 data Concurrency = Serial | Parallel
     deriving Show
@@ -42,4 +46,20 @@ createParser = Create
     )
 
 create :: Mode -> Create -> IO ()
-create mode (Create concurrency numTowers numIters inFile outFile) = return ()
+create mode (Create concurrency numTowers numIters inFile outFile) = do
+  putStrLn "Creating TimeLock Archive (TLA) file.."
+  putStrLn "Creating Chain.."
+  mchain <- getChainingFunc mode concurrency numTowers numIters
+  case mchain of
+    Nothing -> putStrLn "Failed to create chain"
+    Just chain -> do
+      eres <- runExceptT $ encryptTLA inFile outFile chain
+      case eres of 
+        Left err -> putStrLn err
+        Right () -> putStrLn $ "Wrote TLA file to " <> outFile
+  
+getChainingFunc :: Mode -> Concurrency -> (Int -> Int -> IO (Maybe (Hash, ChainHead)))
+getChainingFunc Slow Serial = createChain slowMode
+getChainingFunc Slow Parallel = createChainParallel slowMode
+getChainingFunc Fast Serial = createChain fastMode
+getChainingFunc Fast Parallel = createChainParallel fastMode

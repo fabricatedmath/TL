@@ -22,27 +22,27 @@ import Crypto.TL.Primitives (Hash, unsafeUseAsCString)
 
 encryptTLA
   :: (MonadIO m, MonadError String m)
-  => FilePath -- targetFile
-  -> FilePath -- sourceFile
+  => FilePath -- sourceFile
+  -> FilePath -- targetFile
   -> (Hash, ChainHead) 
   -> m ()
-encryptTLA targetFile sourceFile (hash, chain) = 
+encryptTLA sourceFile targetFile (hash, chain) = 
   do
     let bs = encode chain
     liftIO $ BS.writeFile targetFile bs
-    errCode <- liftIO $ encryptWithOffset targetFile sourceFile (BS.length bs) hash
+    errCode <- liftIO $ encryptWithOffset sourceFile targetFile (BS.length bs) hash
     when (errCode /= 0) $ throwError "Failed to encrypt file"
 
 decryptTLA
   :: (MonadIO m, MonadError String m)
-  => FilePath -- targetFile
-  -> FilePath -- sourceFile
+  => FilePath -- sourceFile
+  -> FilePath -- targetFile
   -> Hash
   -> m ()
-decryptTLA targetFile sourceFile hash = 
+decryptTLA sourceFile targetFile hash = 
   do
     numBytes <- getChainNumBytes sourceFile
-    errCode <- liftIO $ decryptWithOffset targetFile sourceFile numBytes hash
+    errCode <- liftIO $ decryptWithOffset sourceFile targetFile numBytes hash
     when (errCode /= 0) $ throwError "Failed to decrypt file"
   where
     getChainNumBytes :: (MonadIO m, MonadError String m) => FilePath -> m Int
@@ -62,7 +62,7 @@ encryptWithOffset
   -> Int 
   -> Hash
   -> IO Int
-encryptWithOffset targetFile sourceFile offset hash = 
+encryptWithOffset sourceFile targetFile offset hash = 
   do
     let offsetW = fromIntegral offset
     withCString targetFile (\tf -> 
@@ -78,7 +78,7 @@ decryptWithOffset
   -> Int 
   -> Hash
   -> IO Int
-decryptWithOffset targetFile sourceFile offset hash = 
+decryptWithOffset sourceFile targetFile offset hash = 
   do
     let offsetW = fromIntegral offset
     withCString targetFile (\tf -> 
