@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <x86intrin.h>
 
+#include <arpa/inet.h>
+
 const uint32_t initialstate[8] = {
     0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
     0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
@@ -17,8 +19,11 @@ void sha256_x86_iter(const int numIter, uint32_t* const data) {
     __m128i MSG, TMP;
     __m128i MSG0, MSG1, MSG2, MSG3;
 
+    __m128i ENDIAN_MASK = _mm_set_epi8(12,13,14,15,8,9,10,11,4,5,6,7,0,1,2,3);
+
     TMP = _mm_loadu_si128((const __m128i*) &initialstate[0]);
     STATE1 = _mm_loadu_si128((const __m128i*) &initialstate[4]);
+    
 
     TMP = _mm_shuffle_epi32(TMP, 0xB1);          /* CDAB */
     STATE1 = _mm_shuffle_epi32(STATE1, 0x1B);    /* EFGH */
@@ -29,7 +34,9 @@ void sha256_x86_iter(const int numIter, uint32_t* const data) {
     const __m128i CDGH_SAVE = STATE1;
 
     STATE0 = _mm_loadu_si128((const __m128i*) (data+0));
+    STATE0 = _mm_shuffle_epi8(STATE0, ENDIAN_MASK);
     STATE1 = _mm_loadu_si128((const __m128i*) (data+4));
+    STATE1 = _mm_shuffle_epi8(STATE1, ENDIAN_MASK);
 
     const __m128i PADDING_SAVE0 = _mm_loadu_si128((const __m128i*) (padding+0));
     const __m128i PADDING_ADD_SAVE0 = _mm_add_epi32(PADDING_SAVE0, _mm_set_epi64x(0x550C7DC3243185BEULL, 0x12835B01D807AA98ULL));
@@ -198,6 +205,9 @@ void sha256_x86_iter(const int numIter, uint32_t* const data) {
         STATE0 = _mm_blend_epi16(TMP, STATE1, 0xF0); /* DCBA */
         STATE1 = _mm_alignr_epi8(STATE1, TMP, 8);    /* ABEF */
     }
+
+    STATE0 = _mm_shuffle_epi8(STATE0, ENDIAN_MASK);
+    STATE1 = _mm_shuffle_epi8(STATE1, ENDIAN_MASK);
 
     _mm_storeu_si128((__m128i*) &data[0], STATE0);
     _mm_storeu_si128((__m128i*) &data[4], STATE1);
