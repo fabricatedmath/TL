@@ -12,8 +12,6 @@ import Crypto.TL.Primitives
 
 data Cryptonite
 
-type CryptoniteMode = HashMode Cryptonite
-
 cryptoniteMode :: HashMode Cryptonite
 cryptoniteMode = Proxy
 

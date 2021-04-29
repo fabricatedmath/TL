@@ -17,7 +17,7 @@ import Data.Foldable (foldl')
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 
 solveChain :: (Hashable a, MonadError String m) => HashMode a -> ChainHead -> m Hash
-solveChain mode chain = solveChain' noreport noreport mode chain
+solveChain = solveChain' noreport noreport
     where noreport = const $ return ()
 
 solveChain' 

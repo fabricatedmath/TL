@@ -58,13 +58,13 @@ solve mode (Solve verbose inFile outFile) = do
           putStrLn $ "Wrote decrypted file to " <> outFile
 
 getSolvingFunc :: (MonadError String m, MonadIO m, MonadState Int m) => Int -> Bool -> Mode -> (ChainHead -> m Hash)
-getSolvingFunc _ False = getFunc solveChain
-getSolvingFunc numTowers True = getFunc $ (solveChain' (startReporter numTowers) solveReporter)
+getSolvingFunc _ False = getHashingFunc solveChain
+getSolvingFunc numTowers True = getHashingFunc (solveChain' (startReporter numTowers) solveReporter)
 
 startReporter :: (MonadIO m, MonadState Int m) => Int -> (Int -> m ())
 startReporter numTowers i = do
-    towerNum <- succ <$> get
-    put $ towerNum
+    towerNum <- gets succ
+    put towerNum
     liftIO $ putStrLn $ "Solving tower " <> show towerNum <> " of " <> show numTowers <> " with " <> show i <> " hashes.."
 
 solveReporter :: (MonadIO m, MonadState Int m) => (Hash -> m ())

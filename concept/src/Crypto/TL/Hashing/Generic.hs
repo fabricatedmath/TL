@@ -15,8 +15,6 @@ import System.IO.Unsafe (unsafePerformIO)
 
 data SHAGeneric
 
-type SHAGenericMode = HashMode SHAGeneric
-
 shaGenericMode :: HashMode SHAGeneric
 shaGenericMode = Proxy
 

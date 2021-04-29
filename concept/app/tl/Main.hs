@@ -4,6 +4,8 @@ import Data.List
 import Data.Monoid
 import Options.Applicative
 
+import Crypto.TL (Mode)
+
 import TL.Create
 import TL.Solve
 import TL.Util

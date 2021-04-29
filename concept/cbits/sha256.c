@@ -24,6 +24,7 @@
 //
 
 #include <stdint.h>
+#include <arpa/inet.h>
 
 #define STRINGIFY(x)  ""#x
 #define COMMA         ,
@@ -298,7 +299,7 @@ void sha256_iter(const int iter, uint32_t* const ptr) {
   // Don't need initial hash values h0 through h7, results stored directly in bytes 0-7 of w
 
   #undef T
-  #define T(i) beu32 w##i = ptr[i];
+  #define T(i) beu32 w##i = htonl(ptr[i]);
 
   T8(EMPTY,EMPTY);
 
@@ -363,7 +364,7 @@ void sha256_iter(const int iter, uint32_t* const ptr) {
   }
 
   #undef T
-  #define T(i) ptr[i] = w##i;
+  #define T(i) ptr[i] = htonl(w##i);
 
   T8(EMPTY,EMPTY);
 }

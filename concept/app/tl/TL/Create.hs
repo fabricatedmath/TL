@@ -16,7 +16,7 @@ data Create = Create Concurrency Int Int FilePath FilePath
 
 createParser :: Parser Create
 createParser = Create 
-  <$> fromBool Serial Parallel <$> switch
+  . fromBool Serial Parallel <$> switch
     ( long "serial"
     <> help "Run tower creation in serial (rather than in parallel)"
     )
@@ -60,5 +60,5 @@ create mode (Create concurrency numTowers numIters inFile outFile) = do
 
 
 getChainingFunc :: Concurrency -> Mode -> (Int -> Int -> IO (Maybe (Hash, ChainHead)))
-getChainingFunc Serial = getFunc createChain 
-getChainingFunc Parallel = getFunc createChainParallel
+getChainingFunc Serial = getHashingFunc createChain 
+getChainingFunc Parallel = getHashingFunc createChainParallel

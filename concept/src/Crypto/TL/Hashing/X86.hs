@@ -15,8 +15,6 @@ import System.IO.Unsafe (unsafePerformIO)
 
 data SHAX86
 
-type SHAX86Mode = HashMode SHAX86
-
 shax86Mode :: HashMode SHAX86
 shax86Mode = Proxy
 
