@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include <x86intrin.h>
 
-/* initial state */
 const uint32_t initialstate[8] = {
     0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
     0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
@@ -13,12 +12,11 @@ const uint32_t padding[8] = {
     0x00000000, 0x00000000, 0x00000000, 0x00000100
 };
 
-void sha256_iter(const int numIter, uint32_t* const data) {
+void sha256_x86_iter(const int numIter, uint32_t* const data) {
     __m128i STATE0, STATE1;
     __m128i MSG, TMP;
     __m128i MSG0, MSG1, MSG2, MSG3;
 
-    /* Load initial values */
     TMP = _mm_loadu_si128((const __m128i*) &initialstate[0]);
     STATE1 = _mm_loadu_si128((const __m128i*) &initialstate[4]);
 
@@ -27,7 +25,6 @@ void sha256_iter(const int numIter, uint32_t* const data) {
     STATE0 = _mm_alignr_epi8(TMP, STATE1, 8);    /* ABEF */
     STATE1 = _mm_blend_epi16(STATE1, TMP, 0xF0); /* CDGH */
 
-    /* Save current state */
     const __m128i ABEF_SAVE = STATE0;
     const __m128i CDGH_SAVE = STATE1;
 
@@ -202,7 +199,6 @@ void sha256_iter(const int numIter, uint32_t* const data) {
         STATE1 = _mm_alignr_epi8(STATE1, TMP, 8);    /* ABEF */
     }
 
-    /* Save state */
     _mm_storeu_si128((__m128i*) &data[0], STATE0);
     _mm_storeu_si128((__m128i*) &data[4], STATE1);
 }

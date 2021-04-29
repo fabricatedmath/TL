@@ -49,7 +49,7 @@ create :: Mode -> Create -> IO ()
 create mode (Create concurrency numTowers numIters inFile outFile) = do
   putStrLn "Creating TimeLock Archive (TLA) file.."
   putStrLn $ "Creating Chain with " <> show (numIters * numTowers) <> " hashes"
-  mchain <- getChainingFunc mode concurrency numTowers numIters
+  mchain <- getChainingFunc concurrency mode numTowers numIters
   case mchain of
     Nothing -> putStrLn "Failed to create chain"
     Just chain -> do
@@ -57,9 +57,8 @@ create mode (Create concurrency numTowers numIters inFile outFile) = do
       case eres of 
         Left err -> putStrLn err
         Right () -> putStrLn $ "Wrote TLA file to " <> outFile
-  
-getChainingFunc :: Mode -> Concurrency -> (Int -> Int -> IO (Maybe (Hash, ChainHead)))
-getChainingFunc Slow Serial = createChain slowMode
-getChainingFunc Slow Parallel = createChainParallel slowMode
-getChainingFunc Fast Serial = createChain fastMode
-getChainingFunc Fast Parallel = createChainParallel fastMode
+
+
+getChainingFunc :: Concurrency -> Mode -> (Int -> Int -> IO (Maybe (Hash, ChainHead)))
+getChainingFunc Serial = getFunc createChain 
+getChainingFunc Parallel = getFunc createChainParallel

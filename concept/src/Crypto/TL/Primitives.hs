@@ -1,12 +1,12 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Crypto.TL.Primitives 
-  ( Hash, Checksum, EncryptedHash, Slow, Fast, Hashable(..)
+  ( Hash(..), Checksum, EncryptedHash, Hashable(..)
   , hashDefault, hashOnce
   , calcChecksum, verifyChecksum
   , randomHash
   , encrypt, decrypt
-  , slowMode, fastMode, HashMode, SlowMode, FastMode
+  , HashMode
   , unsafeUseAsCString
   ) where
 
@@ -21,7 +21,7 @@ import Data.Bits (shiftR, xor)
 import qualified Data.ByteArray as ByteArray
 
 import Data.ByteString (ByteString)
-import qualified Data.ByteString as BS (mapAccumR, copy, pack, packZipWith, unpack)
+import qualified Data.ByteString as BS (mapAccumR, pack, packZipWith, unpack)
 import Data.ByteString.Base16 (encodeBase16')
 import qualified Data.ByteString.Unsafe as BS (unsafeUseAsCString)
 
@@ -31,8 +31,6 @@ import Data.Serialize
 import Data.Word (Word16)
 
 import Foreign.C.String (CString)
-
-import System.IO.Unsafe (unsafePerformIO)
 
 newtype Hash = 
   Hash 
@@ -73,50 +71,6 @@ type HashMode a = Proxy a
 
 hashOnce :: Hashable a => HashMode a -> Hash -> Hash
 hashOnce mode = hashIter mode 1
-
-data Slow
-
-type SlowMode = HashMode Slow
-
-slowMode :: HashMode Slow
-slowMode = Proxy
-
-instance Hashable Slow where
-  hashIter _ num = iterate' num sha256'
-    where
-      iterate' :: Int -> (a -> a) -> a -> a
-      iterate' n f ainit = iterate'' n ainit
-        where 
-          iterate'' i a
-            | i <= 0 = a
-            | otherwise = a' `seq` i' `seq` iterate' i' f a'
-              where
-              a' = f a 
-              i' = i-1
-
-      sha256' :: Hash -> Hash
-      sha256' = Hash . ByteArray.convert . Hash.hashWith Hash.SHA256 . unHash
-
-data Fast
-
-type FastMode = HashMode Fast
-
-fastMode :: HashMode Fast
-fastMode = Proxy
-
-instance Hashable Fast where
-  hashIter _ i hash = unsafePerformIO $ sha256iterFast'
-    where
-      sha256iterFast' :: IO Hash
-      sha256iterFast' =
-        do
-          let bs' = BS.copy $ unHash hash
-          BS.unsafeUseAsCString bs' (c_sha256_iter i)
-          pure $ Hash bs'
-
--- fast simd c sha, optimized for iteration
-foreign import ccall safe "sha256_iter"
-  c_sha256_iter :: Int -> CString-> IO ()
 
 hashDefault :: ByteString -> Hash
 hashDefault = Hash . ByteArray.convert . Hash.hashWith Hash.SHA256

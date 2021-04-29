@@ -26,3 +26,5 @@ Can build chains and solve them (See app/chain/Main.hs)
 
 * windows support
 
+* store original filename in TLA file for option to use it for decryption
+

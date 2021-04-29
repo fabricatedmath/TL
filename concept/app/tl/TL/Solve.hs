@@ -58,10 +58,8 @@ solve mode (Solve verbose inFile outFile) = do
           putStrLn $ "Wrote decrypted file to " <> outFile
 
 getSolvingFunc :: (MonadError String m, MonadIO m, MonadState Int m) => Int -> Bool -> Mode -> (ChainHead -> m Hash)
-getSolvingFunc _ False Slow = solveChain slowMode
-getSolvingFunc _ False Fast = solveChain fastMode
-getSolvingFunc numTowers True Slow = solveChain' (startReporter numTowers) solveReporter slowMode
-getSolvingFunc numTowers True Fast = solveChain' (startReporter numTowers) solveReporter fastMode
+getSolvingFunc _ False = getFunc solveChain
+getSolvingFunc numTowers True = getFunc $ (solveChain' (startReporter numTowers) solveReporter)
 
 startReporter :: (MonadIO m, MonadState Int m) => Int -> (Int -> m ())
 startReporter numTowers i = do

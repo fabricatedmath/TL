@@ -38,11 +38,12 @@ library:
   c-sources: 
     - cbits/chacha_offset.c
     - cbits/sha256-sse41-sha-x86.c
+    - cbits/sha256.c
   cc-options: -msse4.1 -msha
   extra-libraries: sodium
   ghc-options:
     - -Wall
-    - -Werror
+    #- -Werror
     - -O2
 
 executables:

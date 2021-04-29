@@ -17,14 +17,6 @@ data TL = TL Mode Purpose
 tl :: Parser TL
 tl = TL <$> mode <*> purpose
 
-mode :: Parser Mode
-mode = fromBool Slow Fast <$> switch
-        ( long "slow"
-        <> short 's'
-        <> help "Switch to slow mode hashing (no x86-sse4.1-sha extensions)"
-        <> showDefault
-        )
-
 purpose :: Parser Purpose
 purpose = subparser
        ( command "create"
