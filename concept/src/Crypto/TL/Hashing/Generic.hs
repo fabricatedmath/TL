@@ -30,6 +30,5 @@ instance Hashable SHAGeneric where
           BS.unsafeUseAsCString bs' (c_sha256_iter i)
           pure $ Hash bs'
 
--- fast simd c sha, optimized for iteration
 foreign import ccall safe "sha256_iter"
   c_sha256_iter :: Int -> CString-> IO ()

@@ -1,7 +1,7 @@
 module Crypto.TL.Hashing 
-  ( module Crypto.TL.Hashing.Cryptonite
-  , module Crypto.TL.Hashing.Generic
-  , module Crypto.TL.Hashing.X86
+  ( cryptoniteMode
+  , shaGenericMode
+  , shax86Mode
   )
 where
 
