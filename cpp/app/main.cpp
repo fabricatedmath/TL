@@ -5,6 +5,7 @@ using namespace std::chrono;
 
 #include <cuda_sha.hpp>
 #include <x86exts_sha.hpp>
+#include <sha256.hpp>
 
 #include <mutex>
 #include <boost/asio/post.hpp>
@@ -66,13 +67,19 @@ int main(int argc, char** argv) {
         0xb00361a3, 0x96177a9c, 0xb410ff61, 0xf20015ad
     };
 
+    SHA::iterateHash(1000000000, initialABC);
+
+    //printHash(initialABC);
+
+
+/*
     CudaSHA::check_availablity();
     CudaSHA* cudaSHA = new CudaSHA;
     cudaSHA->init();
     cudaSHA->createChains(1,1,initialABC,initialABC);
     delete cudaSHA;
 
-    printHash(initialABC);
+    printHash(initialABC);*/
     return 0;
 
 
