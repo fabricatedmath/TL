@@ -2,8 +2,6 @@
 #include <stdint.h>
 #include <x86intrin.h>
 
-#include <arpa/inet.h>
-
 const uint32_t initialstate[8] = {
     0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
     0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
@@ -24,7 +22,6 @@ void sha256_x86_iter(const int numIter, uint32_t* const data) {
     TMP = _mm_loadu_si128((const __m128i*) &initialstate[0]);
     STATE1 = _mm_loadu_si128((const __m128i*) &initialstate[4]);
     
-
     TMP = _mm_shuffle_epi32(TMP, 0xB1);          /* CDAB */
     STATE1 = _mm_shuffle_epi32(STATE1, 0x1B);    /* EFGH */
     STATE0 = _mm_alignr_epi8(TMP, STATE1, 8);    /* ABEF */
@@ -35,6 +32,7 @@ void sha256_x86_iter(const int numIter, uint32_t* const data) {
 
     STATE0 = _mm_loadu_si128((const __m128i*) (data+0));
     STATE0 = _mm_shuffle_epi8(STATE0, ENDIAN_MASK);
+    
     STATE1 = _mm_loadu_si128((const __m128i*) (data+4));
     STATE1 = _mm_shuffle_epi8(STATE1, ENDIAN_MASK);
 
