@@ -64,10 +64,10 @@ int main(int argc, char** argv) {
 
     printHash(initialABC);
 
-    ARMSHA::iterateHash(1, initialABC);
+    ARMSHA::iterateHash(2, initialABC);
 
     printHash(initialABC);
-    
+
     return 0;
 /*
     Hashable* hashableCPU = new CPU();

@@ -32,32 +32,35 @@ static const uint32_t K[] =
     0x90BEFFFA, 0xA4506CEB, 0xBEF9A3F7, 0xC67178F2,
 };
 
-void sha256_iter(const int iter, uint32_t* const ptr) {
-  uint32x4_t STATE0, STATE1, ABEF_SAVE, CDGH_SAVE;
-  uint32x4_t MSG0, MSG1, MSG2, MSG3;
-  uint32x4_t TMP0, TMP1, TMP2;
-
-  /* Load state */
-  STATE0 = vld1q_u32(&initialstate[0]);
-  STATE1 = vld1q_u32(&initialstate[4]);
-
-  //while (length >= 64)
-  {
-      /* Save state */
-      ABEF_SAVE = STATE0;
-      CDGH_SAVE = STATE1;
-
-      /* Load message */
-      MSG0 = vld1q_u32((const uint32_t *)(ptr +  0));
-      MSG1 = vld1q_u32((const uint32_t *)(ptr + 4));
-      MSG2 = vld1q_u32((const uint32_t *)(padding + 0));
-      MSG3 = vld1q_u32((const uint32_t *)(padding + 4));
-
       /* Reverse for little endian */
       //MSG0 = vreinterpretq_u32_u8(vrev32q_u8(vreinterpretq_u8_u32(MSG0)));
       //MSG1 = vreinterpretq_u32_u8(vrev32q_u8(vreinterpretq_u8_u32(MSG1)));
       //MSG2 = vreinterpretq_u32_u8(vrev32q_u8(vreinterpretq_u8_u32(MSG2)));
       //MSG3 = vreinterpretq_u32_u8(vrev32q_u8(vreinterpretq_u8_u32(MSG3)));
+
+void sha256_iter(const int numIter, uint32_t* const ptr) {
+  uint32x4_t STATE0, STATE1;
+  uint32x4_t MSG0, MSG1, MSG2, MSG3;
+  uint32x4_t TMP0, TMP1, TMP2;
+
+  /* Load state */
+  const uint32x4_t ABEF_SAVE = vld1q_u32(&initialstate[0]);
+  const uint32x4_t CDGH_SAVE = vld1q_u32(&initialstate[4]);
+
+  const uint32x4_t PADDING_SAVE0 = vld1q_u32((const uint32_t *)(padding + 0));
+  const uint32x4_t PADDING_SAVE1 = vld1q_u32((const uint32_t *)(padding + 4));
+
+  STATE0 = vld1q_u32((const uint32_t *)(ptr + 0));
+  STATE1 = vld1q_u32((const uint32_t *)(ptr + 4));
+
+  for (int i = 0; i < numIter; i++) {
+      MSG0 = STATE0;
+      MSG1 = STATE1;
+      MSG2 = PADDING_SAVE0;
+      MSG3 = PADDING_SAVE1;
+
+      STATE0 = ABEF_SAVE;
+      STATE1 = CDGH_SAVE;
 
       TMP0 = vaddq_u32(MSG0, vld1q_u32(&K[0x00]));
 
