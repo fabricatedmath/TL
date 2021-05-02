@@ -52,6 +52,10 @@ void doHash(Hashable* hashable) {
 }
 
 int main(int argc, char** argv) {
+
+    cout << X86ExtsSHA::is_available() << endl;
+
+    return 0;
 /*
     Hashable* hashableCPU = new CPU();
     hashableCPU->hash();
@@ -67,9 +71,9 @@ int main(int argc, char** argv) {
         0xb00361a3, 0x96177a9c, 0xb410ff61, 0xf20015ad
     };
 
-    SHA::iterateHash(1000000000, initialABC);
+    X86ExtsSHA::iterateHash(1, initialABC);
 
-    //printHash(initialABC);
+    printHash(initialABC);
 
 
 /*

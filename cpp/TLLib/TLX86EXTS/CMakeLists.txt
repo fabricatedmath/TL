@@ -1,16 +1,37 @@
 project (TLX86EXTS)
 
-set(c_source_files ${c_source_files} kernels/sha256-sse41-sha-x86.c)
+#message( WARNING "OS: ${CMAKE_HOST_SYSTEM_NAME}" )
+#message( WARNING "CPU: ${CMAKE_HOST_SYSTEM_PROCESSOR}" )
 
-add_library(${PROJECT_NAME} ${c_source_files} src/x86exts_sha.cpp)
+set(X86 (${CMAKE_HOST_SYSTEM_PROCESSOR} MATCHES "x86_64"))
 
-target_include_directories( ${PROJECT_NAME}
-    PRIVATE ${PROJECT_SOURCE_DIR}/kernels
-)
+if (${X86})
+  set(c_source_files ${c_source_files} kernels/sha256-sse41-sha-x86.c)
+endif()
+
+add_library(${PROJECT_NAME} src/x86exts_sha.cpp ${c_source_files})
+
+if (${X86})
+  target_compile_definitions(${PROJECT_NAME} PRIVATE X86_COMPILED)
+  target_include_directories( ${PROJECT_NAME}
+      PRIVATE ${PROJECT_SOURCE_DIR}/kernels
+  )
+
+  SET(GCC_COVERAGE_COMPILE_FLAGS "-msse4.1 -msha -Wall -O2")
+
+  add_definitions(${GCC_COVERAGE_COMPILE_FLAGS})
+
+  target_link_libraries (${PROJECT_NAME} cpu_features)
+
+endif()
 
 target_include_directories( ${PROJECT_NAME}
     PUBLIC ${PROJECT_SOURCE_DIR}/src
 )
+
+
+
+
 
 #TODO: do this right
 #set(gcc_like_cxx "$<COMPILE_LANG_AND_ID:CXX,ARMClang,AppleClang,Clang,GNU>")
@@ -20,12 +41,3 @@ target_include_directories( ${PROJECT_NAME}
 #  "$<${gcc_like_cxx}:$<BUILD_INTERFACE:-msse4.1;-msha>>"
   #"$<${msvc_cxx}:$<BUILD_INTERFACE:-W3>>"
 #)
-
-SET(GCC_COVERAGE_COMPILE_FLAGS "-msse4.1 -msha -Wall -O2")
-
-add_definitions(${GCC_COVERAGE_COMPILE_FLAGS})
-
-target_link_libraries (${PROJECT_NAME} cpu_features)
-
-
-
