@@ -5,6 +5,7 @@ using namespace std::chrono;
 
 #include <cuda_sha.hpp>
 #include <x86exts_sha.hpp>
+#include <arm_sha.hpp>
 #include <sha256.hpp>
 
 #include <mutex>
@@ -53,7 +54,8 @@ void doHash(Hashable* hashable) {
 
 int main(int argc, char** argv) {
 
-    cout << X86ExtsSHA::is_available() << endl;
+    cout << "x86: " << X86ExtsSHA::is_available() << endl;
+    cout << "arm: " << ARMSHA::is_available() << endl;
 
     return 0;
 /*
