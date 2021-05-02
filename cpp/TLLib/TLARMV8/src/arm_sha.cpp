@@ -21,7 +21,7 @@ bool ARMSHA::is_available() {
 }
 #endif
 
-#ifdef X86_COMPILED
+#ifdef ARM_COMPILED
 void ARMSHA::iterateHash(const int numIter, uint32_t* startingHash) {
     sha256_iter(numIter, startingHash);
 }

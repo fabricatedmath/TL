@@ -17,7 +17,7 @@ if (${ARM})
       PRIVATE ${PROJECT_SOURCE_DIR}/kernels
   )
 
-  #SET(GCC_COVERAGE_COMPILE_FLAGS "-msse4.1 -msha -Wall -O2")
+  SET(GCC_COVERAGE_COMPILE_FLAGS "-march=armv8-a+crypto -Wall -O2")
 
   add_definitions(${GCC_COVERAGE_COMPILE_FLAGS})
 

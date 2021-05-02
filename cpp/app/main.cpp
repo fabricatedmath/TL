@@ -57,6 +57,17 @@ int main(int argc, char** argv) {
     cout << "x86: " << X86ExtsSHA::is_available() << endl;
     cout << "arm: " << ARMSHA::is_available() << endl;
 
+    uint32_t initialABC[8] = {
+        0xba7816bf, 0x8f01cfea, 0x414140de, 0x5dae2223,
+        0xb00361a3, 0x96177a9c, 0xb410ff61, 0xf20015ad
+    };
+
+    printHash(initialABC);
+
+    ARMSHA::iterateHash(1, initialABC);
+
+    printHash(initialABC);
+    
     return 0;
 /*
     Hashable* hashableCPU = new CPU();
@@ -68,10 +79,7 @@ int main(int argc, char** argv) {
     doHash(new GPU());
     doHash(new CPU());
 */
-    uint32_t initialABC[8] = {
-        0xba7816bf, 0x8f01cfea, 0x414140de, 0x5dae2223,
-        0xb00361a3, 0x96177a9c, 0xb410ff61, 0xf20015ad
-    };
+
 
     X86ExtsSHA::iterateHash(1, initialABC);
 
