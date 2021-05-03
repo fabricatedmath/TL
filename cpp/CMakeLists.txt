@@ -5,3 +5,5 @@ add_subdirectory(extern/cuew)
 add_subdirectory(extern/cpu_features)
 add_subdirectory(app)
 add_subdirectory(TLLib)
+
+add_subdirectory(sandbox)

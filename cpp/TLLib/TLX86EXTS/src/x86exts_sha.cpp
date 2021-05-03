@@ -4,10 +4,9 @@
     extern "C" {
     #include <sha256-sse41-sha-x86.h>
     #include "cpuinfo_x86.h"
-
-    using namespace cpu_features;
     }
 
+    using namespace cpu_features;
 
     static const X86Features features = GetX86Info().features;
 #endif

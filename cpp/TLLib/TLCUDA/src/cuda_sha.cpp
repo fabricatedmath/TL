@@ -5,7 +5,7 @@
 
 #include <cuda_sha.hpp>
 #include <algorithm>
-#include<stdio.h>
+#include <stdio.h>
 
 const char * CudaSHA::getAvailabilityString(const CudaSHA::Availability availability) {
   switch(availability) {
@@ -89,7 +89,6 @@ int CudaSHA::init() {
 #endif
 
 #ifdef CUDA_COMPILED
-
 int CudaSHA::createChains(const int numTowers, const int numIters, uint32_t* const startingHashes, uint32_t* const endingHashes) {
   const int maxThreadsPerBlock = 256;
   const int roundedThreadsPerBlock = ((numTowers + 32 - 1) / 32) * 32; // divisible by 32
