@@ -10,3 +10,6 @@
 [submodule "concept/tl-lib/extern/cpu_features"]
 	path = concept/tl-lib/extern/cpu_features
 	url = https://github.com/google/cpu_features.git
+[submodule "concept/tl-lib/extern/cuew"]
+	path = concept/tl-lib/extern/cuew
+	url = git@github.com:fabricatedmath/cuew.git
