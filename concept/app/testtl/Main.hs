@@ -3,6 +3,7 @@
 module Main where
 
 import Data.ByteString (ByteString)
+import qualified Data.ByteString as BS (readFile)
 import qualified Data.ByteString.Unsafe as BS (unsafeUseAsCString)
 import Data.FileEmbed
 import Data.Int (Int32)
@@ -10,6 +11,10 @@ import Data.Int (Int32)
 import Foreign.C.String (CString)
 import Foreign.ForeignPtr
 import Foreign.Ptr
+
+import Language.Haskell.TH.Syntax (Exp, Q, runIO)
+
+import System.Directory (doesFileExist)
 
 data CudaAvailability = Available | NotCompiled | NoNvidiaDriver
   deriving (Enum, Show)
@@ -30,6 +35,18 @@ main = do
 
   --print cudaFatBin
 
+maybeEmbedFile :: FilePath -> Q Exp
+maybeEmbedFile fp = (runIO $ maybeFile fp) >>= f
+  where f (Just bs) = bsToExp bs
+        f Nothing = Nothing
+
+maybeFile :: FilePath -> IO (Maybe ByteString)
+maybeFile fp = 
+  do
+    exists <- doesFileExist fp
+    case exists of
+      True -> Just <$> BS.readFile fp
+      False -> return Nothing
 
 data CudaShaHandle
 
@@ -46,7 +63,7 @@ newCudaSha = fmap CudaSha $ c_cudaNew >>= newForeignPtr c_cudaDelete
 
 -- embed cuda fatbin file into this function (no relative paths for fatbin file)
 cudaFatBin :: ByteString
-cudaFatBin = $(embedFile "tl-lib/build/sha256-impls/sha-cuda/sha256_iter.fatbin")
+cudaFatBin = $(embedOneFileOf ["tl-lib/build/sha256-impls/sha-cuda/sha256_iter.fatbin", "LICENSE"])
 
 cudaInit :: CudaSha -> IO Int32
 cudaInit cudaSha =  

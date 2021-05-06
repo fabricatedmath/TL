@@ -81,7 +81,9 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - concept
+    - directory
     - file-embed
+    - template-haskell
 
 tests:
   concept-test:
