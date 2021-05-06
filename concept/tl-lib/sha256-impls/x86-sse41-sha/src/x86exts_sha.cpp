@@ -22,9 +22,9 @@ bool X86ExtsSHA::is_available() {
 #endif
 
 #ifdef X86_COMPILED
-void X86ExtsSHA::iterateHash(const int numIter, uint32_t* startingHash) {
+void X86ExtsSHA::iterateHash(const int numIter, uint32_t* const startingHash) {
     sha256_iter(numIter, startingHash);
 }
 #else
-void X86ExtsSHA::iterateHash(const int numIter, uint32_t* startingHash) {}
+void X86ExtsSHA::iterateHash(const int numIter, uint32_t* const startingHash) {}
 #endif

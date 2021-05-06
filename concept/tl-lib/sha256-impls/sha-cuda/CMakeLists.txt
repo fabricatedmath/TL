@@ -1,4 +1,4 @@
-project(cuda LANGUAGES CXX)
+project(sha-cuda LANGUAGES CXX)
 
 add_library(${PROJECT_NAME} src/cuda_sha.cpp)
 

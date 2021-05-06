@@ -43,7 +43,7 @@ CudaSHA::CudaSHA() {}
 #endif
 
 #ifdef CUDA_COMPILED
-int CudaSHA::init() {
+int CudaSHA::init(const void* fatbin) {
   CUresult result = cuInit(0);
   if (result != CUDA_SUCCESS) {
     printf("Failed to initialize CUDA runtime (%s)\n", cuewErrorString(result));
@@ -67,7 +67,8 @@ int CudaSHA::init() {
   }
 
   CUmodule cuModule = 0;
-  result = cuModuleLoad(&cuModule, "../sha256_iter.fatbin");
+  //result = cuModuleLoad(&cuModule, "tl-lib/build/sha256-impls/sha-cuda/sha256_iter.fatbin");
+  result = cuModuleLoadFatBinary(&cuModule, fatbin);
   if (result != CUDA_SUCCESS) {
     printf("Failed to load CUDA module (%s)", cuewErrorString(result));
     return -1;

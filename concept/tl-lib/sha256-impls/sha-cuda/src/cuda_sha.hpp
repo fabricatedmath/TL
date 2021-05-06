@@ -25,7 +25,7 @@ public:
 
     CudaSHA();
 
-    int init();
+    int init(const void* fatbin);
 
     int createChains(const int numTowers, const int numIters, uint32_t* const startingHashes, uint32_t* const endingHashes);
 

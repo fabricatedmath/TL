@@ -57,6 +57,32 @@ executables:
     dependencies:
     - concept
 
+  testtl:
+    main:                Main.hs
+    source-dirs:         app/testtl
+    extra-libraries: 
+    - tl-lib
+    - arm-crypto
+    - x86-sse41-sha
+    - sha-cuda
+    - cpu_features
+    - cuew
+    - stdc++
+    extra-lib-dirs: 
+    - tl-lib/build
+    - tl-lib/build/sha256-impls/arm-crypto
+    - tl-lib/build/sha256-impls/x86-sse41-sha
+    - tl-lib/build/sha256-impls/sha-cuda
+    - tl-lib/build/extern/cpu_features
+    - tl-lib/build/extern/cuew
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - concept
+    - file-embed
+
 tests:
   concept-test:
     main:                Spec.hs
