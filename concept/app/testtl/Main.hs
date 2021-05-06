@@ -11,14 +11,18 @@ import Foreign.C.String (CString)
 import Foreign.ForeignPtr
 import Foreign.Ptr
 
-
+data CudaAvailability = Available | NotCompiled | NoNvidiaDriver
+  deriving (Enum, Show)
 
 main :: IO ()
 main = do
   print "dogs"
-  x86IsAvailable >>= print
-  armIsAvailable >>= print
+  c_x86IsAvailable >>= print
+  c_armIsAvailable >>= print
+  c_cudaIsAvailable >>= print
+
   cudaIsAvailable >>= print
+
   cuda <- newCudaSha
   i <- cudaInit cuda
   print i
@@ -34,6 +38,9 @@ data CudaSha =
   { _cudaShaHandle :: ForeignPtr CudaShaHandle
   }
 
+cudaIsAvailable :: IO CudaAvailability
+cudaIsAvailable = toEnum . fromIntegral <$> c_cudaIsAvailable
+
 newCudaSha :: IO CudaSha
 newCudaSha = fmap CudaSha $ c_cudaNew >>= newForeignPtr c_cudaDelete
 
@@ -48,13 +55,13 @@ cudaInit cudaSha =
   )
 
 foreign import ccall safe "x86IsAvailable"
-  x86IsAvailable :: IO Bool
+  c_x86IsAvailable :: IO Bool
 
 foreign import ccall safe "armIsAvailable"
-  armIsAvailable :: IO Bool
+  c_armIsAvailable :: IO Bool
 
 foreign import ccall safe "cudaIsAvailable"
-  cudaIsAvailable :: IO Int
+  c_cudaIsAvailable :: IO Int32
 
 foreign import ccall unsafe "cudaNew" c_cudaNew
     :: IO (Ptr CudaShaHandle)

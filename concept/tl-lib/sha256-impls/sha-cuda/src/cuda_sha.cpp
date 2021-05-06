@@ -84,7 +84,7 @@ int CudaSHA::init(const void* fatbin) {
   return 0;
 }
 #else
-int CudaSHA::init() {
+int CudaSHA::init(const void* fatbin) {
   return -1;
 }
 #endif
