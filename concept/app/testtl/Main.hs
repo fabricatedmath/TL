@@ -5,16 +5,13 @@ module Main where
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS (readFile)
 import qualified Data.ByteString.Unsafe as BS (unsafeUseAsCString)
-import Data.FileEmbed
 import Data.Int (Int32)
 
 import Foreign.C.String (CString)
 import Foreign.ForeignPtr
 import Foreign.Ptr
 
-import Language.Haskell.TH.Syntax (Exp, Q, runIO)
-
-import System.Directory (doesFileExist)
+import Test
 
 data CudaAvailability = Available | NotCompiled | NoNvidiaDriver
   deriving (Enum, Show)
@@ -35,19 +32,6 @@ main = do
 
   --print cudaFatBin
 
-maybeEmbedFile :: FilePath -> Q Exp
-maybeEmbedFile fp = (runIO $ maybeFile fp) >>= f
-  where f (Just bs) = bsToExp bs
-        f Nothing = Nothing
-
-maybeFile :: FilePath -> IO (Maybe ByteString)
-maybeFile fp = 
-  do
-    exists <- doesFileExist fp
-    case exists of
-      True -> Just <$> BS.readFile fp
-      False -> return Nothing
-
 data CudaShaHandle
 
 data CudaSha = 
@@ -62,14 +46,17 @@ newCudaSha :: IO CudaSha
 newCudaSha = fmap CudaSha $ c_cudaNew >>= newForeignPtr c_cudaDelete
 
 -- embed cuda fatbin file into this function (no relative paths for fatbin file)
-cudaFatBin :: ByteString
-cudaFatBin = $(embedOneFileOf ["tl-lib/build/sha256-impls/sha-cuda/sha256_iter.fatbin", "LICENSE"])
+maybeCudaFatBin :: Maybe ByteString
+maybeCudaFatBin = $(maybeEmbedFile "tl-lib/build/sha256-impls/sha-cuda/sha256_iter.fatbin")
 
 cudaInit :: CudaSha -> IO Int32
 cudaInit cudaSha =  
-  withForeignPtr (_cudaShaHandle cudaSha) (\ptr -> 
-    BS.unsafeUseAsCString cudaFatBin $ c_cudaInit ptr 
-  )
+  case maybeCudaFatBin of
+    Nothing -> error "Trying to init cuda, but no cuda fatbin found!"
+    Just cudaFatBin -> 
+      withForeignPtr (_cudaShaHandle cudaSha) (\ptr -> 
+        BS.unsafeUseAsCString cudaFatBin $ c_cudaInit ptr 
+      )
 
 foreign import ccall safe "x86IsAvailable"
   c_x86IsAvailable :: IO Bool
