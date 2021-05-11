@@ -1,15 +1,16 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Main where
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS (readFile)
 import qualified Data.ByteString.Unsafe as BS (unsafeUseAsCString)
+import Data.FileEmbed (embedFileIfExists)
 import Data.Int (Int32)
 
 import Foreign.C.String (CString)
 import Foreign.ForeignPtr
 import Foreign.Ptr
-
-import Test
 
 data CudaAvailability = Available | NotCompiled | NoNvidiaDriver
   deriving (Enum, Show)
@@ -45,7 +46,7 @@ newCudaSha = fmap CudaSha $ c_cudaNew >>= newForeignPtr c_cudaDelete
 
 -- embed cuda fatbin file into this function (no relative paths for fatbin file)
 maybeCudaFatBin :: Maybe ByteString
-maybeCudaFatBin = $(maybeEmbedFile "tl-lib/build/sha256-impls/sha-cuda/sha256_iter.fatbin")
+maybeCudaFatBin = $(embedFileIfExists "tl-lib/build/sha256-impls/sha-cuda/sha256_iter.fatbin")
 
 cudaInit :: CudaSha -> IO Int32
 cudaInit cudaSha =  
