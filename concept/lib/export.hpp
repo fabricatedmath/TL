@@ -3,7 +3,6 @@
 #include <cuda_sha.hpp>
 
 extern "C" {
-  bool x86IsAvailable();
   bool armIsAvailable();
 
   int cudaIsAvailable();

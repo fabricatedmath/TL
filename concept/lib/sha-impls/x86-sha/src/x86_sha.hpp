@@ -2,8 +2,11 @@
 
 #include <stdint.h>
 
-class X86Sha {
-public:
-    static bool is_available();
-    static void iterateHash(const int numIter, uint32_t* const startingHash);
-};
+enum Availability {
+        Available, NotCompiled, NoSSE41, NoSha
+    };
+
+extern "C" {
+    int x86ShaIsAvailable();
+    void x86ShaIterateHash(const int numIter, uint32_t* const startingHash);
+}

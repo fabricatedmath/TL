@@ -5,5 +5,5 @@ using namespace std;
 
 int main() {
   cout << "dogs" << endl;
-  cout << X86Sha::is_available() << endl;
+  cout << x86ShaIsAvailable() << endl;
 }

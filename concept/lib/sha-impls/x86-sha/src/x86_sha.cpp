@@ -2,8 +2,8 @@
 
 #ifdef X86_COMPILED
     extern "C" {
-    #include <sha256_sse41_sha_x86.h>
-    #include "cpuinfo_x86.h"
+        #include <sha256_sse41_sha_x86.h>
+        #include "cpuinfo_x86.h"
     }
 
     using namespace cpu_features;
@@ -11,20 +11,26 @@
     static const X86Features features = GetX86Info().features;
 #endif
 
-#ifdef X86_COMPILED
-bool X86Sha::is_available() {
-    return features.sse4_1 && features.sha;
-}
-#else
-bool X86Sha::is_available() {
-    return false;
-}
-#endif
+int x86ShaIsAvailable() {
+    #ifdef X86_COMPILED
+        if (!features.sse4_1) {
+            return NoSSE41;
+        }
 
-#ifdef X86_COMPILED
-void X86Sha::iterateHash(const int numIter, uint32_t* const startingHash) {
-    sha256_iter(numIter, startingHash);
+        if (!features.sha) {
+            return NoSha;
+        }
+
+        return Available;
+    #else
+        return NotCompiled;
+    #endif
 }
-#else
-void X86Sha::iterateHash(const int numIter, uint32_t* const startingHash) {}
-#endif
+    
+void x86ShaIterateHash(const int numIter, uint32_t* const startingHash) {
+    #ifdef X86_COMPILED
+        sha256_iter(numIter, startingHash);
+    #else
+        return;
+    #endif
+}

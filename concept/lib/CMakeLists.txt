@@ -16,7 +16,6 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   cpu_features
   cuew
-  x86-sha
   arm-sha
   cuda-sha
 )

@@ -18,7 +18,7 @@ data CudaAvailability = Available | NotCompiled | NoNvidiaDriver
 main :: IO ()
 main = do
   print "dogs"
-  c_x86IsAvailable >>= print
+  x86ShaIsAvailable >>= print
   c_armIsAvailable >>= print
   c_cudaIsAvailable >>= print
 
@@ -30,6 +30,12 @@ main = do
   print "cats"
 
   --print cudaFatBin
+
+x86ShaIsAvailable :: IO X86ShaAvailablity
+x86ShaIsAvailable = toEnum . fromEnum <$> c_x86ShaIsAvailable
+
+data X86ShaAvailablity = X86ShaAvailable | X86ShaNotCompiled | X86ShaNoSSE41 | X86ShaNoSha
+  deriving (Enum, Show)
 
 data CudaShaHandle
 
@@ -56,8 +62,11 @@ cudaInit cudaSha =
         BS.unsafeUseAsCString cudaFatBin $ c_cudaInit ptr 
       )
 
-foreign import ccall safe "x86IsAvailable"
-  c_x86IsAvailable :: IO Bool
+foreign import ccall safe "x86ShaIsAvailable"
+  c_x86ShaIsAvailable :: IO Int32
+
+foreign import ccall safe "x86ShaIterateHash"
+  c_x86ShaIterateHash :: Int -> CString -> IO ()
 
 foreign import ccall safe "armIsAvailable"
   c_armIsAvailable :: IO Bool
