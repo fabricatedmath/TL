@@ -1,0 +1,6 @@
+[submodule "concept/lib/extern/cuew"]
+	path = concept/lib/extern/cuew
+	url = git@github.com:fabricatedmath/cuew.git
+[submodule "concept/lib/extern/cpu_features"]
+	path = concept/lib/extern/cpu_features
+	url = https://github.com/google/cpu_features.git
