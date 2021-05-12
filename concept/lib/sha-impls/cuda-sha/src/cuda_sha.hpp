@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 
-class CudaSHA {
+class CudaSha {
 private:
 #ifdef CUDA_COMPILED
     CUdevice cuDevice;
@@ -23,11 +23,11 @@ public:
     static const char * getAvailabilityString(const Availability availability);
     static Availability check_availablity();
 
-    CudaSHA();
+    CudaSha();
 
     int init(const void* fatbin);
 
-    int createChains(const int numTowers, const int numIters, uint32_t* const startingHashes, uint32_t* const endingHashes);
+    int createChains(const int numTowers, const int numIters, uint32_t* const hashes);
 
-    ~CudaSHA();
+    ~CudaSha();
 };

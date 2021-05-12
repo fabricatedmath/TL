@@ -7,13 +7,13 @@
 #include <algorithm>
 #include <stdio.h>
 
-const char * CudaSHA::getAvailabilityString(const CudaSHA::Availability availability) {
+const char * CudaSha::getAvailabilityString(const CudaSha::Availability availability) {
   switch(availability) {
-      case CudaSHA::Available:
+      case CudaSha::Available:
         return "available";
-      case CudaSHA::NotCompiled:
+      case CudaSha::NotCompiled:
         return "not compiled";
-      case CudaSHA::NoNvidiaDriver:
+      case CudaSha::NoNvidiaDriver:
         return "no NVIDIA driver found";
       default:
         return "error fall through";
@@ -21,29 +21,28 @@ const char * CudaSHA::getAvailabilityString(const CudaSHA::Availability availabi
 }
 
 #ifdef CUDA_COMPILED
-CudaSHA::Availability CudaSHA::check_availablity() {
+CudaSha::Availability CudaSha::check_availablity() {
   if (cuewInit(CUEW_INIT_CUDA) == CUEW_SUCCESS) {
     return Available;
   } else {
     return NoNvidiaDriver;
   }
-    
 }
 #else
-CudaSHA::Availability CudaSHA::check_availablity() {
+CudaSha::Availability CudaSha::check_availablity() {
     return NotCompiled;
 }
 #endif
 
 
 #ifdef CUDA_COMPILED
-CudaSHA::CudaSHA() {}
+CudaSha::CudaSha() {}
 #else
-CudaSHA::CudaSHA() {}
+CudaSha::CudaSha() {}
 #endif
 
 #ifdef CUDA_COMPILED
-int CudaSHA::init(const void* fatbin) {
+int CudaSha::init(const void* fatbin) {
   CUresult result = cuInit(0);
   if (result != CUDA_SUCCESS) {
     printf("Failed to initialize CUDA runtime (%s)\n", cuewErrorString(result));
@@ -84,13 +83,13 @@ int CudaSHA::init(const void* fatbin) {
   return 0;
 }
 #else
-int CudaSHA::init(const void* fatbin) {
+int CudaSha::init(const void* fatbin) {
   return -1;
 }
 #endif
 
 #ifdef CUDA_COMPILED
-int CudaSHA::createChains(const int numTowers, const int numIters, uint32_t* const startingHashes, uint32_t* const endingHashes) {
+int CudaSha::createChains(const int numTowers, const int numIters, uint32_t* const hashes) {
   const int maxThreadsPerBlock = 256;
   const int roundedThreadsPerBlock = ((numTowers + 32 - 1) / 32) * 32; // divisible by 32
   const int threadsPerBlock = std::min(roundedThreadsPerBlock, maxThreadsPerBlock);
@@ -107,7 +106,7 @@ int CudaSHA::createChains(const int numTowers, const int numIters, uint32_t* con
     return -1;
   }
 
-  result = cuMemcpyHtoD(d_mem, startingHashes, size);
+  result = cuMemcpyHtoD(d_mem, hashes, size);
   if (result != CUDA_SUCCESS) {
     printf("Failed to copy host memory to CUDA memory (%s)", cuewErrorString(result));
     return -1;
@@ -130,7 +129,7 @@ int CudaSHA::createChains(const int numTowers, const int numIters, uint32_t* con
     return -1;
   }
 
-  result = cuMemcpyDtoH(endingHashes, d_mem, size);
+  result = cuMemcpyDtoH(hashes, d_mem, size);
   if (result != CUDA_SUCCESS) {
     printf("Failed to copy CUDA memory to host memory (%s)", cuewErrorString(result));
     return -1;
@@ -145,16 +144,16 @@ int CudaSHA::createChains(const int numTowers, const int numIters, uint32_t* con
   return 0;
 }
 #else
-int CudaSHA::createChains(const int numTowers, const int numIters, uint32_t* const startingHashes, uint32_t* const endingHashes) { return -1; }
+int CudaSha::createChains(const int numTowers, const int numIters, uint32_t* const hashes) { return -1; }
 #endif
 
 #ifdef CUDA_COMPILED
-CudaSHA::~CudaSHA() {
+CudaSha::~CudaSha() {
   CUresult result = cuCtxDestroy(cuContext);
   if (result != CUDA_SUCCESS) {
     printf("Failed to destroy CUDA context (%s)", cuewErrorString(result));
   }
 }
 #else
-CudaSHA::~CudaSHA() {}
+CudaSha::~CudaSha() {}
 #endif

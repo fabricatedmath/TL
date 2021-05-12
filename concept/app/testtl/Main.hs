@@ -44,9 +44,8 @@ cudaIsAvailable = toEnum . fromIntegral <$> c_cudaIsAvailable
 newCudaSha :: IO CudaSha
 newCudaSha = fmap CudaSha $ c_cudaNew >>= newForeignPtr c_cudaDelete
 
--- embed cuda fatbin file into this function (no relative paths for fatbin file)
 maybeCudaFatBin :: Maybe ByteString
-maybeCudaFatBin = $(embedFileIfExists "tl-lib/build/sha256-impls/sha-cuda/sha256_iter.fatbin")
+maybeCudaFatBin = $(embedFileIfExists "lib/build/sha-impls/cuda-sha/sha256_iter.fatbin")
 
 cudaInit :: CudaSha -> IO Int32
 cudaInit cudaSha =  

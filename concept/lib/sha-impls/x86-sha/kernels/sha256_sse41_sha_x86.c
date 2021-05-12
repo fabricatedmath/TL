@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <x86intrin.h>
 
-#include <sha256-sse41-sha-x86.h>
+#include <sha256_sse41_sha_x86.h>
 
 const uint32_t initialstate[8] = {
     0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,

@@ -61,20 +61,20 @@ executables:
     main:                Main.hs
     source-dirs:         app/testtl
     extra-libraries: 
-    - tl-lib
-    - arm-crypto
-    - x86-sse41-sha
-    - sha-cuda
+    - lib
+    - arm-sha
+    - x86-sha
+    - cuda-sha
     - cpu_features
     - cuew
     - stdc++
     extra-lib-dirs: 
-    - tl-lib/build
-    - tl-lib/build/sha256-impls/arm-crypto
-    - tl-lib/build/sha256-impls/x86-sse41-sha
-    - tl-lib/build/sha256-impls/sha-cuda
-    - tl-lib/build/extern/cpu_features
-    - tl-lib/build/extern/cuew
+    - lib/build
+    - lib/build/sha-impls/arm-sha
+    - lib/build/sha-impls/x86-sha
+    - lib/build/sha-impls/cuda-sha
+    - lib/build/extern/cpu_features
+    - lib/build/extern/cuew
     ghc-options:
     - -threaded
     - -rtsopts

@@ -345,7 +345,7 @@ hmix(beu32* a,
 KERNEL_QUALIFIERS
 //LAUNCH_BOUNDS
 void
-sha256_iter_kernel(const int numTowers, const int iter, const beu32* const d_in, beu32* const d_out)
+sha256_iter_kernel(const int numTowers, const int iter, beu32* const d_hashes)
 {
   // Maybe can do linear addressing into 256 bytes and then shfl, but probably not worth it.
 
@@ -360,7 +360,7 @@ sha256_iter_kernel(const int numTowers, const int iter, const beu32* const d_in,
   // Don't need initial hash values h0 through h7, results stored directly in bytes 0-7 of w
 
   #undef T
-  #define T(i) beu32 w##i = d_in[offset+i];
+  #define T(i) beu32 w##i = d_hashes[offset+i];
 
   T8(EMPTY,EMPTY);
 
@@ -425,7 +425,7 @@ sha256_iter_kernel(const int numTowers, const int iter, const beu32* const d_in,
   }
 
   #undef T
-  #define T(i) d_out[offset+i] = w##i;
+  #define T(i) d_hashes[offset+i] = w##i;
 
   T8(EMPTY,EMPTY);
 }

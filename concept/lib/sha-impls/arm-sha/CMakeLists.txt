@@ -1,23 +1,23 @@
-project (x86-sse41-sha)
+project (arm-sha)
 
 #message( WARNING "OS: ${CMAKE_HOST_SYSTEM_NAME}" )
 #message( WARNING "CPU: ${CMAKE_HOST_SYSTEM_PROCESSOR}" )
 
-set(X86 (${CMAKE_HOST_SYSTEM_PROCESSOR} MATCHES "x86_64"))
+set(ARM (${CMAKE_HOST_SYSTEM_PROCESSOR} MATCHES "aarch64"))
 
-if (${X86})
-  set(c_source_files ${c_source_files} kernels/sha256-sse41-sha-x86.c)
+if (${ARM})
+  set(c_source_files ${c_source_files} kernels/sha256_sha_arm.c)
 endif()
 
-add_library(${PROJECT_NAME} src/x86exts_sha.cpp ${c_source_files})
+add_library(${PROJECT_NAME} src/arm_sha.cpp ${c_source_files})
 
-if (${X86})
-  target_compile_definitions(${PROJECT_NAME} PRIVATE X86_COMPILED)
+if (${ARM})
+  target_compile_definitions(${PROJECT_NAME} PRIVATE ARM_COMPILED)
   target_include_directories( ${PROJECT_NAME}
       PRIVATE ${PROJECT_SOURCE_DIR}/kernels
   )
 
-  SET(GCC_COVERAGE_COMPILE_FLAGS "-msse4.1 -msha -Wall -O2")
+  SET(GCC_COVERAGE_COMPILE_FLAGS "-march=armv8-a+crypto -Wall -O2")
 
   add_definitions(${GCC_COVERAGE_COMPILE_FLAGS})
 

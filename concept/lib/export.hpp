@@ -8,7 +8,7 @@ extern "C" {
 
   int cudaIsAvailable();
 
-  CudaSHA* cudaNew();
-  int cudaInit(CudaSHA* cudaSha, const void* fatbin);
-  void cudaDelete(CudaSHA* cudaSha);
+  CudaSha* cudaNew();
+  int cudaInit(CudaSha* cudaSha, const void* fatbin);
+  void cudaDelete(CudaSha* cudaSha);
 }

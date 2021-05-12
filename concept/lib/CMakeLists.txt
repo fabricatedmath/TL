@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.20)
 
-project (tl-lib)
+project (lib)
 
 add_subdirectory(extern/cuew)
 add_subdirectory(extern/cpu_features)
-add_subdirectory(sha256-impls)
+add_subdirectory(sha-impls)
 add_subdirectory(app)
 
 add_library(${PROJECT_NAME} export.cpp)
@@ -16,7 +16,7 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   cpu_features
   cuew
-  x86-sse41-sha
-  arm-crypto
-  sha-cuda
+  x86-sha
+  arm-sha
+  cuda-sha
 )

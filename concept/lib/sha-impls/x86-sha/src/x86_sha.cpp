@@ -1,8 +1,8 @@
-#include <x86exts_sha.hpp>
+#include <x86_sha.hpp>
 
 #ifdef X86_COMPILED
     extern "C" {
-    #include <sha256-sse41-sha-x86.h>
+    #include <sha256_sse41_sha_x86.h>
     #include "cpuinfo_x86.h"
     }
 
@@ -12,19 +12,19 @@
 #endif
 
 #ifdef X86_COMPILED
-bool X86ExtsSHA::is_available() {
+bool X86Sha::is_available() {
     return features.sse4_1 && features.sha;
 }
 #else
-bool X86ExtsSHA::is_available() {
+bool X86Sha::is_available() {
     return false;
 }
 #endif
 
 #ifdef X86_COMPILED
-void X86ExtsSHA::iterateHash(const int numIter, uint32_t* const startingHash) {
+void X86Sha::iterateHash(const int numIter, uint32_t* const startingHash) {
     sha256_iter(numIter, startingHash);
 }
 #else
-void X86ExtsSHA::iterateHash(const int numIter, uint32_t* const startingHash) {}
+void X86Sha::iterateHash(const int numIter, uint32_t* const startingHash) {}
 #endif

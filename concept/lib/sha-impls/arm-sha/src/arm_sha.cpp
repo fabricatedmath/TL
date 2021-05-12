@@ -2,7 +2,7 @@
 
 #ifdef ARM_COMPILED
     extern "C" {
-    #include <sha256-sha-arm.h>
+    #include <sha256_sha_arm.h>
     #include "cpuinfo_aarch64.h"
 
     using namespace cpu_features;
@@ -12,19 +12,19 @@
 #endif
 
 #ifdef ARM_COMPILED
-bool ARMSHA::is_available() {
+bool ArmSha::is_available() {
     return features.sha2;
 }
 #else
-bool ARMSHA::is_available() {
+bool ArmSha::is_available() {
     return false;
 }
 #endif
 
 #ifdef ARM_COMPILED
-void ARMSHA::iterateHash(const int numIter, uint32_t* startingHash) {
+void ArmSha::iterateHash(const int numIter, uint32_t* startingHash) {
     sha256_iter(numIter, startingHash);
 }
 #else
-void ARMSHA::iterateHash(const int numIter, uint32_t* startingHash) {}
+void ArmSha::iterateHash(const int numIter, uint32_t* startingHash) {}
 #endif
