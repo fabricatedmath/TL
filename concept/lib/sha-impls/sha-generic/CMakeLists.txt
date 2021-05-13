@@ -1,0 +1,2 @@
+project(sha-generic)
+

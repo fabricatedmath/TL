@@ -3,8 +3,6 @@
 #include <cuda_sha.hpp>
 
 extern "C" {
-  bool armIsAvailable();
-
   int cudaIsAvailable();
 
   CudaSha* cudaNew();

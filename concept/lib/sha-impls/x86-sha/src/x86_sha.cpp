@@ -11,7 +11,7 @@
     static const X86Features features = GetX86Info().features;
 #endif
 
-int x86ShaIsAvailable() {
+int isAvailable_x86() {
     #ifdef X86_COMPILED
         if (!features.sse4_1) {
             return NoSSE41;
@@ -27,7 +27,7 @@ int x86ShaIsAvailable() {
     #endif
 }
     
-void x86ShaIterateHash(const int numIter, uint32_t* const startingHash) {
+void iterateHash_x86(const int numIter, uint32_t* const startingHash) {
     #ifdef X86_COMPILED
         sha256_iter(numIter, startingHash);
     #else

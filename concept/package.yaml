@@ -40,11 +40,19 @@ library:
     - cbits/sha256-sse41-sha-x86.c
     - cbits/sha256.c
   cc-options: -msse4.1 -msha
-  extra-libraries: sodium
   ghc-options:
     - -Wall
     #- -Werror
     - -O2
+  extra-libraries: 
+    - sodium
+    - lib
+    - arm-sha
+    - x86-sha
+    - cuda-sha
+    - cpu_features
+    - cuew
+    - stdc++
 
 executables:
   tl:
@@ -57,33 +65,26 @@ executables:
     dependencies:
     - concept
 
-  testtl:
-    main:                Main.hs
-    source-dirs:         app/testtl
-    extra-libraries: 
-    - lib
-    - arm-sha
-    - x86-sha
-    - cuda-sha
-    - cpu_features
-    - cuew
-    - stdc++
-    extra-lib-dirs: 
-    - lib/build
-    - lib/build/sha-impls/arm-sha
-    - lib/build/sha-impls/x86-sha
-    - lib/build/sha-impls/cuda-sha
-    - lib/build/extern/cpu_features
-    - lib/build/extern/cuew
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - concept
-    - directory
-    - file-embed
-    - template-haskell
+  # testtl:
+  #   main:                Main.hs
+  #   source-dirs:         app/testtl
+  #   extra-libraries: 
+  #   - lib
+  #   - arm-sha
+  #   - x86-sha
+  #   - cuda-sha
+  #   - cpu_features
+  #   - cuew
+  #   - stdc++
+  #   ghc-options:
+  #   - -threaded
+  #   - -rtsopts
+  #   - -with-rtsopts=-N
+  #   dependencies:
+  #   - concept
+  #   - directory
+  #   - file-embed
+  #   - template-haskell
 
 tests:
   concept-test:
@@ -96,3 +97,4 @@ tests:
     dependencies:
     - concept
     - hspec
+
