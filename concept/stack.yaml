@@ -71,6 +71,7 @@ extra-deps:
 extra-lib-dirs:
 - lib/build
 - lib/build/sha-impls/arm-sha
+- lib/build/sha-impls/sha-generic
 - lib/build/sha-impls/x86-sha
 - lib/build/sha-impls/cuda-sha
 - lib/build/extern/cpu_features

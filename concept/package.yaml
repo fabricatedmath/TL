@@ -50,6 +50,7 @@ library:
     - arm-sha
     - x86-sha
     - cuda-sha
+    - sha-generic
     - cpu_features
     - cuew
     - stdc++

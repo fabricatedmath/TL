@@ -3,6 +3,7 @@ module Impls where
 import Test.Hspec
 
 import Crypto.TL.Impls.Arm
+import Crypto.TL.Impls.Generic
 import Crypto.TL.Impls.X86
 
 import Crypto.TL.Util
@@ -13,6 +14,7 @@ import TestVectors
 specImpls :: Spec
 specImpls = do
   testFFIHash "X86" shaModeX86
+  testFFIHash "Generic" shaModeGeneric
   testFFIHash "Arm" shaModeArm
 
 testFFIHash :: FFIHashable a => String -> HashMode a -> Spec
