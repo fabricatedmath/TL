@@ -61,8 +61,8 @@ spec = do
     describe "Crypto.TL.Hashing.Cryptonite" $ do
         checkHashingFunc cryptoniteMode
 
-    describe "Crypto.TL.Hashing.X86" $ do
-        checkHashingFunc shax86Mode
+--    describe "Crypto.TL.Hashing.X86" $ do
+--        checkHashingFunc shax86Mode
 
     describe "Crypto.TL.Chain (Cryptonite)" $ do
         specChain (createChain cryptoniteMode)
@@ -70,8 +70,8 @@ spec = do
     describe "Crypto.TL.Chain (Generic)" $ do
         specChain (createChain shaGenericMode)
 
-    describe "Crypto.TL.Chain (X86)" $ do
-        specChain (createChain shax86Mode)
+--    describe "Crypto.TL.Chain (X86)" $ do
+--        specChain (createChain shax86Mode)
 
     describe "Crypto.TL.Chain.Parallel (Cryptonite)" $ do
         specChain (createChainParallel cryptoniteMode)
@@ -79,7 +79,7 @@ spec = do
     describe "Crypto.TL.Chain.Parallel (Generic)" $ do
         specChain (createChainParallel shaGenericMode)
 
-    describe "Crypto.TL.Chain.Parallel (X86)" $ do
-        specChain (createChainParallel shax86Mode)
+--    describe "Crypto.TL.Chain.Parallel (X86)" $ do
+--        specChain (createChainParallel shax86Mode)
 
     specImpls

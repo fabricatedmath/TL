@@ -18,9 +18,9 @@ shaModeGeneric = Proxy
 instance FFIHashable ShaGeneric where
   ffiHashFunc _ = do
     a <- availabilityHelper c_isAvailable
-    case a == Available of
-      True -> return $ Right $ iterateHashHelper c_iterateHash
-      False -> return $ Left $ availabilityMessage a
+    return $ case a == Available of
+      True -> Right $ iterateHashHelper c_iterateHash
+      False -> Left $ availabilityMessage a
     where 
       availabilityMessage :: Availability -> String
       availabilityMessage availability = 
