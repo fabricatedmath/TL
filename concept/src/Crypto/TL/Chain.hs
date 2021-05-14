@@ -47,7 +47,7 @@ createChain hashFunc n i =
     mtowers <- buildTowers hashFunc n i
     return $ do
       towers <- mtowers
-      return $ towers `seq` foldTowers hashFunc towers
+      towers `seq` return $ foldTowers hashFunc towers
 
 numTowersInChain :: ChainHead -> Int
 numTowersInChain (ChainHead _ _ _ chain) = go 1 chain
