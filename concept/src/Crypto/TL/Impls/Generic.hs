@@ -1,4 +1,6 @@
-module Crypto.TL.Impls.Generic where
+module Crypto.TL.Impls.Generic 
+  ( shaModeGeneric
+  ) where
 
 import Data.Int (Int32)
 

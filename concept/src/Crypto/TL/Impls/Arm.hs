@@ -1,4 +1,6 @@
-module Crypto.TL.Impls.Arm where
+module Crypto.TL.Impls.Arm 
+  ( shaModeArm
+  ) where
 
 import Data.Int (Int32)
 
@@ -15,9 +17,9 @@ shaModeArm = Proxy
 
 instance FFIHashable ShaArm where
   ffiHashFunc _ = do
-    a <- availabilityHelper c_isAvailable_arm
+    a <- availabilityHelper c_isAvailable
     case a == Available of
-      True -> return $ Right $ iterateHashHelper c_iterateHash_arm
+      True -> return $ Right $ iterateHashHelper c_iterateHash
       False -> return $ Left $ availabilityMessage a
     where 
       availabilityMessage :: Availability -> String
@@ -32,7 +34,7 @@ data Availability = Available | NotCompiled | NoSha
   deriving (Enum, Eq, Show)
 
 foreign import ccall safe "isAvailable_arm"
-  c_isAvailable_arm :: IO Int32
+  c_isAvailable:: IO Int32
 
 foreign import ccall safe "iterateHash_arm"
-  c_iterateHash_arm :: Int -> CString -> IO ()
+  c_iterateHash :: Int -> CString -> IO ()
