@@ -4,7 +4,7 @@ import Data.List
 import Data.Monoid
 import Options.Applicative
 
-import Crypto.TL (Mode)
+import Crypto.TL (HashFunc)
 
 import TL.Create
 import TL.Solve
@@ -13,11 +13,10 @@ import TL.Util
 data Purpose = PurposeCreate Create | PurposeSolve Solve
   deriving Show
 
-data TL = TL Mode Purpose
-  deriving Show
+data TL = TL HashFunc Purpose
 
-tl :: Parser TL
-tl = TL <$> mode <*> purpose
+tl :: Parser HashFunc -> Parser TL
+tl hashFunc = TL <$> hashFunc <*> purpose
 
 purpose :: Parser Purpose
 purpose = subparser
@@ -35,13 +34,16 @@ run (TL mode purpose) =
     (PurposeCreate c) -> create mode c
     (PurposeSolve s) -> solve mode s
 
-opts :: ParserInfo TL
-opts = 
-  info (tl <**> helper) 
+opts :: Parser HashFunc -> ParserInfo TL
+opts hashFunc = 
+  info (tl hashFunc <**> helper) 
   ( fullDesc
   <> progDesc "TimeLock"
   <> header "hello"
   )
 
 main :: IO ()
-main = customExecParser (prefs showHelpOnEmpty) opts >>= run
+main = 
+  do
+    hashFunc <- hashFuncParser
+    customExecParser (prefs showHelpOnEmpty) (opts hashFunc) >>= run

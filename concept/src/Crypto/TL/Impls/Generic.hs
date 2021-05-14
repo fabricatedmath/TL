@@ -3,29 +3,22 @@ module Crypto.TL.Impls.Generic
   ) where
 
 import Data.Int (Int32)
-
 import Data.Proxy (Proxy(..))
-
 import Foreign.C.String
 
-import Crypto.TL.Util
+import Crypto.TL.Impls.Util
+import Crypto.TL.Types
 
 data ShaGeneric
 
 shaModeGeneric :: HashMode ShaGeneric
 shaModeGeneric = Proxy
 
-instance FFIHashable ShaGeneric where
-  ffiHashFunc _ = do
+instance HasHashFunc ShaGeneric where
+  getHashFunc _ = do
     a <- availabilityHelper c_isAvailable
-    return $ case a == Available of
-      True -> Right $ iterateHashHelper c_iterateHash
-      False -> Left $ availabilityMessage a
-    where 
-      availabilityMessage :: Availability -> String
-      availabilityMessage availability = 
-        case availability of
-          Available -> "Available"
+    return $ case a of
+      Available -> Right $ iterateHashHelper c_iterateHash
 
 --  enum Availability { Available };
 data Availability = Available

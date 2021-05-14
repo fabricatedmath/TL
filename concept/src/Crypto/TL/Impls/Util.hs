@@ -1,17 +1,13 @@
-module Crypto.TL.Util where
-
-import Crypto.TL.Primitives
+module Crypto.TL.Impls.Util where
 
 import qualified Data.ByteString as BS (copy)
 import qualified Data.ByteString.Unsafe as BS (unsafeUseAsCString)
-
 import Data.Int (Int32)
-
-import Data.Proxy (Proxy)
-
 import Foreign.C.String (CString)
-
 import System.IO.Unsafe (unsafePerformIO)
+
+import Crypto.TL.Primitives
+import Crypto.TL.Types
 
 availabilityHelper :: Enum a => IO Int32 -> IO a
 availabilityHelper = fmap $ toEnum . fromEnum
@@ -26,11 +22,3 @@ iterateHashHelper ffiHashFunction numHashes hash = unsafePerformIO $ iterateHash
       BS.unsafeUseAsCString bs' (ffiHashFunction numHashes)
       pure $ Hash bs'
 {-# INLINABLE iterateHashHelper #-}
-
-type HashFunc = Int -> Hash -> Hash
-
-type HashMode a = Proxy a
-
-class FFIHashable a where
-  ffiHashFunc :: Proxy a -> IO (Either String HashFunc)
-

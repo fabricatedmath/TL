@@ -45,11 +45,11 @@ createParser = Create
     <> metavar "FILENAME"
     )
 
-create :: Mode -> Create -> IO ()
-create mode (Create concurrency numTowers numIters inFile outFile) = do
+create :: HashFunc -> Create -> IO ()
+create hashFunc (Create concurrency numTowers numIters inFile outFile) = do
   putStrLn "Creating TimeLock Archive (TLA) file.."
   putStrLn $ "Creating Chain with " <> show (numIters * numTowers) <> " hashes"
-  mchain <- getChainingFunc concurrency mode numTowers numIters
+  mchain <- getChainingFunc concurrency hashFunc numTowers numIters
   case mchain of
     Nothing -> putStrLn "Failed to create chain"
     Just chain -> do
@@ -59,6 +59,6 @@ create mode (Create concurrency numTowers numIters inFile outFile) = do
         Right () -> putStrLn $ "Wrote TLA file to " <> outFile
 
 
-getChainingFunc :: Concurrency -> Mode -> (Int -> Int -> IO (Maybe (Hash, ChainHead)))
-getChainingFunc Serial = getHashingFunc createChain 
-getChainingFunc Parallel = getHashingFunc createChainParallel
+getChainingFunc :: Concurrency -> HashFunc -> (Int -> Int -> IO (Maybe (Hash, ChainHead)))
+getChainingFunc Serial = createChain 
+getChainingFunc Parallel = createChainParallel

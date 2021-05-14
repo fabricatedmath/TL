@@ -38,8 +38,8 @@ solveParser = Solve
   <> metavar "FILENAME"
   )
 
-solve :: Mode -> Solve -> IO ()
-solve mode (Solve verbose inFile outFile) = do
+solve :: HashFunc -> Solve -> IO ()
+solve hashFunc (Solve verbose inFile outFile) = do
   echain <- S.runGet S.get <$> BS.readFile inFile
   case echain of
     Left err -> putStrLn err
@@ -48,7 +48,7 @@ solve mode (Solve verbose inFile outFile) = do
           numHashes = numHashesInChain chain
       putStrLn $ "Solving chain with " <> show numTowers <> " towers and " <> show numHashes <> " total hashes" <> "\n"
       ehash <- flip evalStateT 0 $ runExceptT $ do
-        hash <- getSolvingFunc numTowers verbose mode chain
+        hash <- getSolvingFunc numTowers verbose hashFunc chain
         decryptTLA inFile outFile hash
         pure hash
       case ehash of 
@@ -57,9 +57,9 @@ solve mode (Solve verbose inFile outFile) = do
           when verbose $ putStrLn $ "Chain solved with hash: " <> show hash <> "\n"
           putStrLn $ "Wrote decrypted file to " <> outFile
 
-getSolvingFunc :: (MonadError String m, MonadIO m, MonadState Int m) => Int -> Bool -> Mode -> (ChainHead -> m Hash)
-getSolvingFunc _ False = getHashingFunc solveChain
-getSolvingFunc numTowers True = getHashingFunc (solveChain' (startReporter numTowers) solveReporter)
+getSolvingFunc :: (MonadError String m, MonadIO m, MonadState Int m) => Int -> Bool -> HashFunc -> (ChainHead -> m Hash)
+getSolvingFunc _ False = solveChain
+getSolvingFunc numTowers True = solveChain' (startReporter numTowers) solveReporter
 
 startReporter :: (MonadIO m, MonadState Int m) => Int -> (Int -> m ())
 startReporter numTowers i = do
