@@ -8,6 +8,7 @@ import qualified Data.ByteArray as ByteArray
 
 import Data.Proxy (Proxy(..))
 
+import Crypto.TL.Primitives
 import Crypto.TL.Types
 
 data Native
@@ -18,7 +19,7 @@ shaModeNative = Proxy
 instance HasHashFunc Native where
   getHashFunc _ = return $ Right $ hashIter
     where
-      hashIter num = iterate' num sha256'
+      hashIter num = flipEndian . iterate' num sha256' . flipEndian
         where
           iterate' :: Int -> (a -> a) -> a -> a
           iterate' n f ainit = iterate'' n ainit

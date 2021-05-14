@@ -11,5 +11,5 @@ import Crypto.TL.Chain (ChainHead, createChain, solveChain, solveChain', numTowe
 import Crypto.TL.Chain.Parallel (createChainParallel)
 import Crypto.TL.Crypt (encryptTLA, decryptTLA)
 import Crypto.TL.Impls
-import Crypto.TL.Primitives ( hashDefault )
+import Crypto.TL.Primitives ( flipEndian, hashDefault )
 import Crypto.TL.Types (Hash, HashFunc)

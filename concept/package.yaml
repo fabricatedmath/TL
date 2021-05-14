@@ -9,7 +9,6 @@ copyright:           "2021 Author name here"
 extra-source-files:
 - README.md
 - ChangeLog.md
-- cbits/sha256-sse41-sha-x86.c
 - cbits/chacha_offset.c
 
 # Metadata used when publishing your package
@@ -24,10 +23,10 @@ description:         Please see the README on GitHub at <https://github.com/gith
 dependencies:
 - base >= 4.7 && < 5
 - base16
-- basement
 - bytestring
 - cereal
 - cryptonite
+- file-embed
 - memory
 - mtl
 - transformers
@@ -37,16 +36,13 @@ library:
   source-dirs: src
   c-sources: 
     - cbits/chacha_offset.c
-    - cbits/sha256-sse41-sha-x86.c
-    - cbits/sha256.c
-  cc-options: -msse4.1 -msha
+  cc-options: -O2
   ghc-options:
     - -Wall
     - -Werror
     - -O2
   extra-libraries: 
     - sodium
-    - lib
     - arm-sha
     - x86-sha
     - cuda-sha
@@ -65,27 +61,6 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - concept
-
-  # testtl:
-  #   main:                Main.hs
-  #   source-dirs:         app/testtl
-  #   extra-libraries: 
-  #   - lib
-  #   - arm-sha
-  #   - x86-sha
-  #   - cuda-sha
-  #   - cpu_features
-  #   - cuew
-  #   - stdc++
-  #   ghc-options:
-  #   - -threaded
-  #   - -rtsopts
-  #   - -with-rtsopts=-N
-  #   dependencies:
-  #   - concept
-  #   - directory
-  #   - file-embed
-  #   - template-haskell
 
 tests:
   concept-test:

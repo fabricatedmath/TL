@@ -29,10 +29,10 @@ purpose = subparser
        )
 
 run :: TL -> IO ()
-run (TL mode purpose) = 
+run (TL haskFunc purpose) = 
   case purpose of
-    (PurposeCreate c) -> create mode c
-    (PurposeSolve s) -> solve mode s
+    (PurposeCreate c) -> create haskFunc c
+    (PurposeSolve s) -> solve haskFunc s
 
 opts :: Parser HashFunc -> ParserInfo TL
 opts hashFunc = 

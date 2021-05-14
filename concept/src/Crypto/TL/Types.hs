@@ -2,9 +2,8 @@
 
 module Crypto.TL.Types where
 
-import Control.Monad (replicateM, when)
+import Control.Monad (replicateM)
 import Data.ByteString (ByteString)
-import qualified Data.ByteString as BS (pack, unpack)
 import Data.ByteString.Base16 (encodeBase16')
 import Data.Char (chr)
 import Data.Proxy (Proxy(..))
@@ -15,16 +14,16 @@ newtype Hash =
   { unHash :: ByteString
   } deriving Eq
 
+fromRight :: Either a b -> b
+fromRight (Right b) = b
+fromRight (Left _) = error "Failed to convert value to Right"
+
 instance Show Hash where
-  show = map (chr . fromEnum) . BS.unpack . encodeBase16' . unHash
+  show = map (chr . fromEnum) . fromRight . runGet (replicateM 32 getWord8) . encodeBase16' . unHash
   
 instance Serialize Hash where
-  put (Hash bs) = 
-    do
-      let unpackedBS = BS.unpack bs
-      when (length unpackedBS /= 32) $ error "Hash has bad length!"
-      mapM_ putWord8 unpackedBS
-  get = Hash . BS.pack <$> replicateM 32 getWord8
+  put = mapM_ putWord32be . fromRight . runGet (replicateM 8 getWord32be) . unHash
+  get = Hash . runPut . mapM_ putWord32be <$> replicateM 8 getWord32be
 
 newtype Checksum = 
     Checksum 
