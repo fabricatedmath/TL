@@ -16,17 +16,17 @@ shaModeX86 = Proxy
 instance FFIHashable ShaX86 where
   ffiHashFunc _ = do
     a <- availabilityHelper c_isAvailable_x86
-    case a == Available of
-      True -> return $ Right $ iterateHashHelper c_iterateHash_x86
-      False -> return $ Left $ availabilityMessage a
+    return $ case a == Available of
+      True -> Right $ iterateHashHelper c_iterateHash_x86
+      False -> Left $ availabilityMessage a
     where 
       availabilityMessage :: Availability -> String
       availabilityMessage availability = 
         case availability of
           Available -> "Available"
           NotCompiled -> "Not compiled"
-          NoSSE41 -> "No SSE4.1 extension capability found on CPU"
-          NoSha -> "No Sha x86 extension capability found on CPU"
+          NoSSE41 -> "No CPU x86 SSE4.1 extension capability found"
+          NoSha -> "No CPU x86 SHA extension capability found"
 
 --  enum Availability { Available, NotCompiled, NoSSE41, NoSha };
 data Availability = Available | NotCompiled | NoSSE41 | NoSha
