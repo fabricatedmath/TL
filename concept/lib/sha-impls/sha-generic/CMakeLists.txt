@@ -1,6 +1,6 @@
 project(sha-generic)
 
-set(c_source_files ${c_source_files} kernels/sha256.c)
+set(c_source_files ${c_source_files} kernels/sha256-generic.c)
 
 
 add_library(${PROJECT_NAME} src/sha_generic.cpp ${c_source_files})

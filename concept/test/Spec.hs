@@ -12,7 +12,6 @@ import Crypto.TL
 import Crypto.TL.Primitives (Hash(..), hashOnce)
 import Crypto.TL.Types
 
-import Impls
 import TestVectors
 
 main :: IO ()

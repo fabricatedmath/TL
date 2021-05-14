@@ -21,7 +21,7 @@ const uint32_t padding[8] = {
     0x00000000, 0x00000000, 0x00000000, 0x00000100
 };
 
-void sha256_iter(const int numIter, uint32_t* const data) {
+void sha256_iter_x86(const int numIter, uint32_t* const data) {
     __m128i STATE0, STATE1;
     __m128i MSG, TMP;
     __m128i MSG0, MSG1, MSG2, MSG3;

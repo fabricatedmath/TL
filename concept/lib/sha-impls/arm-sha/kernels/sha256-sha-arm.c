@@ -44,7 +44,7 @@ static const uint32_t K[] =
       //MSG2 = vreinterpretq_u32_u8(vrev32q_u8(vreinterpretq_u8_u32(MSG2)));
       //MSG3 = vreinterpretq_u32_u8(vrev32q_u8(vreinterpretq_u8_u32(MSG3)));
 
-void sha256_iter(const int numIter, uint32_t* const ptr) {
+void sha256_iter_arm(const int numIter, uint32_t* const ptr) {
   uint32x4_t STATE0, STATE1;
   uint32x4_t MSG0, MSG1, MSG2, MSG3;
   uint32x4_t TMP0, TMP1, TMP2;

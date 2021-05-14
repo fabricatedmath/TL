@@ -1,4 +1,4 @@
-#include <sha256.h>
+#include <sha256-generic.h>
 
 //
 // Copyright 2021 Charles Durham <cpdurham@protonmail.com>, Copyright 2013 Allan MacKinnon <allanmac@alum.mit.edu>
@@ -293,7 +293,7 @@ hmix(beu32* a,
 //
 // See https://en.wikipedia.org/wiki/SHA-2#Pseudocode
 //
-void sha256_iter(const int iter, uint32_t* const ptr) {
+void sha256_iter_generic(const int iter, uint32_t* const ptr) {
   // Don't need initial hash values h0 through h7, results stored directly in bytes 0-7 of w
 
   #undef T

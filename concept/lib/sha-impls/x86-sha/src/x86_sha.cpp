@@ -29,7 +29,7 @@ int isAvailable_x86() {
     
 void iterateHash_x86(const int numIter, uint32_t* const startingHash) {
     #ifdef X86_COMPILED
-        sha256_iter(numIter, startingHash);
+        sha256_iter_x86(numIter, startingHash);
     #else
         return;
     #endif
