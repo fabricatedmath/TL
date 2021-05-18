@@ -9,7 +9,6 @@ copyright:           "2021 Author name here"
 extra-source-files:
 - README.md
 - ChangeLog.md
-- cbits/chacha_offset.c
 
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
@@ -25,7 +24,10 @@ dependencies:
 - base16
 - bytestring
 - cereal
+- cereal-conduit
+- conduit
 - cryptonite
+- cryptonite-conduit
 - file-embed
 - memory
 - mtl
@@ -34,15 +36,11 @@ dependencies:
 
 library:
   source-dirs: src
-  c-sources: 
-    - cbits/chacha_offset.c
-  cc-options: -O2
   ghc-options:
     - -Wall
     - -Werror
     - -O2
   extra-libraries: 
-    - sodium
     - arm-sha
     - x86-sha
     - cuda-sha

@@ -49,7 +49,7 @@ solve hashFunc (Solve verbose inFile outFile) = do
       putStrLn $ "Solving chain with " <> show numTowers <> " towers and " <> show numHashes <> " total hashes" <> "\n"
       ehash <- flip evalStateT 0 $ runExceptT $ do
         hash <- getSolvingFunc numTowers verbose hashFunc chain
-        decryptTLA inFile outFile hash
+        liftIO $ decryptTLA inFile outFile hash
         pure hash
       case ehash of 
         Left err -> putStrLn err

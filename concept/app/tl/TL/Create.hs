@@ -53,11 +53,8 @@ create hashFunc (Create concurrency numTowers numIters inFile outFile) = do
   case mchain of
     Nothing -> putStrLn "Failed to create chain"
     Just chain -> do
-      eres <- runExceptT $ encryptTLA inFile outFile chain
-      case eres of 
-        Left err -> putStrLn err
-        Right () -> putStrLn $ "Wrote TLA file to " <> outFile
-
+      encryptTLA inFile outFile chain
+      putStrLn $ "Wrote TLA file to " <> outFile
 
 getChainingFunc :: Concurrency -> HashFunc -> (Int -> Int -> IO (Maybe (Hash, ChainHead)))
 getChainingFunc Serial = createChain 
