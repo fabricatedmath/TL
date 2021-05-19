@@ -2,6 +2,7 @@
 
 import Test.Hspec
 
+import Control.Monad (replicateM)
 import qualified Crypto.Hash as Hash
 import qualified Data.ByteArray as ByteArray
 import Data.ByteString (ByteString)
@@ -9,7 +10,8 @@ import Data.ByteString.Base16 (decodeBase16)
 import Data.Serialize
 
 import Crypto.TL
-import Crypto.TL.Primitives (Hash(..), hashOnce)
+import Crypto.TL.Bulk (toPacked, toUnpacked)
+import Crypto.TL.Primitives (Hash(..), hashOnce, randomHash)
 import Crypto.TL.Types
 
 import TestVectors
@@ -22,8 +24,8 @@ spec = do
     describe "Crytpto.TL.Primitives" $ do
         it "Check SHA256 Sanity From Library" $ do
             hashAbc `shouldBe` hashAbcGroundTruth
-
     specImpls
+    specPacked
 
 specImpls :: Spec
 specImpls = do
@@ -49,6 +51,13 @@ testHash name mode = do
             specChain hashFunc $ createChain hashFunc
           describe "Hash Chain (Parallel)" $ do
             specChain hashFunc $ createChainParallel hashFunc
+
+specPacked :: Spec
+specPacked = do
+  describe "Crypto.TL.Bulk" $ do
+    it "Packed Test" $ do
+      hashes <- replicateM 10 randomHash
+      hashes `shouldBe` toUnpacked (toPacked hashes)
 
 
 specChain :: HashFunc -> (Int -> Int -> IO (Maybe (Hash,ChainHead))) -> Spec
