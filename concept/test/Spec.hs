@@ -26,6 +26,7 @@ spec = do
             hashAbc `shouldBe` hashAbcGroundTruth
     specImpls
     specPacked
+    specBulkHash
 
 specImpls :: Spec
 specImpls = do
@@ -51,6 +52,24 @@ testHash name mode = do
             specChain hashFunc $ createChain hashFunc
           describe "Hash Chain (Parallel)" $ do
             specChain hashFunc $ createChainParallel hashFunc
+
+
+--todo: get programmatic info about cuda topology
+--todo: Manage error codes
+specBulkHash :: Spec
+specBulkHash = do
+  describe "Crypto.TL.Impls.Cuda" $ do
+    ebulkHashFunc <- runIO $ getBulkHashFunc shaModeCuda
+    case ebulkHashFunc of
+      Left message -> it ("Skipping due to: " <> message) $ () `shouldBe` ()
+      Right bulkHashFunc -> do
+        it "Hash Sanity Check" $ do
+          hashes' <- bulkHashFunc 1 (take 10 $ repeat hashAbc)
+          hashes' `shouldBe` (take 10 $ repeat hashAbcGroundTruthIter1)
+
+        it "Hash Sanity Check 2" $ do
+          hashes' <- bulkHashFunc 2 (take 10 $ repeat hashAbc)
+          hashes' `shouldBe` (take 10 $ repeat hashAbcGroundTruthIter2)
 
 specPacked :: Spec
 specPacked = do

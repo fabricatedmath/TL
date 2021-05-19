@@ -6,20 +6,17 @@
 
 #include <stdint.h>
 
+enum Availability { Available, NotCompiled, NoNvidiaDriver };
+
 class CudaSha {
 private:
 #ifdef CUDA_COMPILED
     CUdevice cuDevice;
     CUcontext cuContext;
-    // CUmodule cuModule; // Can't store this in class? free() errors..
     CUfunction sha256_iter_kernel;
-
 #endif
-public:
-    enum Availability {
-        Available, NotCompiled, NoNvidiaDriver
-    };
 
+public:
     static const char * getAvailabilityString(const Availability availability);
     static Availability check_availablity();
 
@@ -31,3 +28,11 @@ public:
 
     ~CudaSha();
 };
+
+extern "C" {
+  int cudaIsAvailable();
+  CudaSha* cudaNew();
+  int cudaInit(CudaSha* cudaSha, const void* fatbin);
+  int cudaCreateChains(CudaSha* cudaSha, const int numTowers, const int numIters, uint32_t* const hashes);
+  void cudaDelete(CudaSha* cudaSha);
+}

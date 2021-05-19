@@ -7,42 +7,42 @@
 #include <algorithm>
 #include <stdio.h>
 
-const char * CudaSha::getAvailabilityString(const CudaSha::Availability availability) {
+const char * CudaSha::getAvailabilityString(const Availability availability) {
   switch(availability) {
-      case CudaSha::Available:
+      case Available:
         return "available";
-      case CudaSha::NotCompiled:
+      case NotCompiled:
         return "not compiled";
-      case CudaSha::NoNvidiaDriver:
+      case NoNvidiaDriver:
         return "no NVIDIA driver found";
       default:
         return "error fall through";
   }
 }
 
+
+Availability CudaSha::check_availablity() {
 #ifdef CUDA_COMPILED
-CudaSha::Availability CudaSha::check_availablity() {
   if (cuewInit(CUEW_INIT_CUDA) == CUEW_SUCCESS) {
     return Available;
   } else {
     return NoNvidiaDriver;
   }
-}
 #else
-CudaSha::Availability CudaSha::check_availablity() {
-    return NotCompiled;
+  return NotCompiled;    
+#endif
 }
-#endif
 
 
+CudaSha::CudaSha() {
 #ifdef CUDA_COMPILED
-CudaSha::CudaSha() {}
 #else
-CudaSha::CudaSha() {}
 #endif
+}
 
-#ifdef CUDA_COMPILED
+
 int CudaSha::init(const void* fatbin) {
+#ifdef CUDA_COMPILED
   CUresult result = cuInit(0);
   if (result != CUDA_SUCCESS) {
     printf("Failed to initialize CUDA runtime (%s)\n", cuewErrorString(result));
@@ -79,17 +79,14 @@ int CudaSha::init(const void* fatbin) {
     printf("Failed to find CUDA kernel (%s)", cuewErrorString(result));
     return -1;
   }
-
   return 0;
-}
 #else
-int CudaSha::init(const void* fatbin) {
   return -1;
-}
 #endif
+}
 
-#ifdef CUDA_COMPILED
 int CudaSha::createChains(const int numTowers, const int numIters, uint32_t* const hashes) {
+#ifdef CUDA_COMPILED
   const int maxThreadsPerBlock = 256;
   const int roundedThreadsPerBlock = ((numTowers + 32 - 1) / 32) * 32; // divisible by 32
   const int threadsPerBlock = std::min(roundedThreadsPerBlock, maxThreadsPerBlock);
@@ -100,15 +97,23 @@ int CudaSha::createChains(const int numTowers, const int numIters, uint32_t* con
 
   CUdeviceptr d_mem;
 
-  CUresult result = cuMemAlloc(&d_mem, size);
+  CUresult result;
+
+  result = cuCtxPushCurrent(cuContext);
   if (result != CUDA_SUCCESS) {
-    printf("Failed to allocate CUDA memory (%s)", cuewErrorString(result));
+    printf("Failed to make context current (%s)\n", cuewErrorString(result));
+    return -1;
+  }
+
+  result = cuMemAlloc(&d_mem, size);
+  if (result != CUDA_SUCCESS) {
+    printf("Failed to allocate CUDA memory (%s)\n", cuewErrorString(result));
     return -1;
   }
 
   result = cuMemcpyHtoD(d_mem, hashes, size);
   if (result != CUDA_SUCCESS) {
-    printf("Failed to copy host memory to CUDA memory (%s)", cuewErrorString(result));
+    printf("Failed to copy host memory to CUDA memory (%s)\n", cuewErrorString(result));
     return -1;
   }
   int numTowersArg = numTowers;
@@ -119,41 +124,61 @@ int CudaSha::createChains(const int numTowers, const int numIters, uint32_t* con
   // Launch the CUDA kernel
   result = cuLaunchKernel(sha256_iter_kernel,  blocksPerGrid, 1, 1, threadsPerBlock, 1, 1, 0, NULL, args, NULL);
   if (result != CUDA_SUCCESS) {
-    printf("Failed to launch CUDA kernel (%s)", cuewErrorString(result));
+    printf("Failed to launch CUDA kernel (%s)\n", cuewErrorString(result));
     return -1;
   }
 
   result = cuCtxSynchronize();
   if (result != CUDA_SUCCESS) {
-    printf("Kernel launch failed (%s)", cuewErrorString(result));
+    printf("Kernel launch failed (%s)\n", cuewErrorString(result));
     return -1;
   }
 
   result = cuMemcpyDtoH(hashes, d_mem, size);
   if (result != CUDA_SUCCESS) {
-    printf("Failed to copy CUDA memory to host memory (%s)", cuewErrorString(result));
+    printf("Failed to copy CUDA memory to host memory (%s)\n", cuewErrorString(result));
     return -1;
   }
 
   result = cuMemFree(d_mem);
   if (result != CUDA_SUCCESS) {
-    printf("Failed to free CUDA memory (%s)", cuewErrorString(result));
+    printf("Failed to free CUDA memory (%s)\n", cuewErrorString(result));
     return -1;
   }
 
   return 0;
-}
 #else
-int CudaSha::createChains(const int numTowers, const int numIters, uint32_t* const hashes) { return -1; }
+  return -1;
 #endif
+}
 
-#ifdef CUDA_COMPILED
 CudaSha::~CudaSha() {
+  printf("deleted\n");
+#ifdef CUDA_COMPILED
   CUresult result = cuCtxDestroy(cuContext);
   if (result != CUDA_SUCCESS) {
     printf("Failed to destroy CUDA context (%s)", cuewErrorString(result));
   }
-}
 #else
-CudaSha::~CudaSha() {}
 #endif
+}
+
+int cudaIsAvailable() {
+  return CudaSha::check_availablity();
+}
+
+CudaSha* cudaNew() {
+  return new CudaSha();
+}
+
+int cudaInit(CudaSha* cudaSha, const void* fatbin) {
+  return cudaSha->init(fatbin);
+}
+
+int cudaCreateChains(CudaSha* cudaSha, const int numTowers, const int numIters, uint32_t* const hashes) {
+  return cudaSha->createChains(numTowers, numIters, hashes);
+}
+
+void cudaDelete(CudaSha* cudaSha) {
+  delete cudaSha;
+}

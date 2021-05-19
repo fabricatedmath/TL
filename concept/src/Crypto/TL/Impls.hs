@@ -1,9 +1,11 @@
 {-# LANGUAGE ExistentialQuantification #-}
 
 module Crypto.TL.Impls 
-  ( shaModeArm, shaModeGeneric, shaModeNative, shaModeX86
+  ( shaModeArm, shaModeGeneric, shaModeNative, shaModeX86, shaModeCuda
   , getHashFuncs
   ) where
+
+import Crypto.TL.Impls.Cuda
 
 import Crypto.TL.Impls.Arm
 import Crypto.TL.Impls.Generic

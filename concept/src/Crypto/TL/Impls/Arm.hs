@@ -17,16 +17,10 @@ shaModeArm = Proxy
 instance HasHashFunc ShaArm where
   getHashFunc _ = do
     a <- availabilityHelper c_isAvailable
-    return $ case a == Available of
-      True -> Right $ iterateHashHelper c_iterateHash
-      False -> Left $ availabilityMessage a
-    where 
-      availabilityMessage :: Availability -> String
-      availabilityMessage availability = 
-        case availability of
-          Available -> "Available"
-          NotCompiled -> "Not Compiled"
-          NoSha -> "No CPU Arm Sha extension capability found"
+    return $ case a of
+      Available -> Right $ iterateHashHelper c_iterateHash
+      NotCompiled -> Left "Not Compiled"
+      NoSha -> Left "No CPU Arm Sha extension capability found"
 
 --  enum Availability { Available, NotCompiled, NoSha };
 data Availability = Available | NotCompiled | NoSha

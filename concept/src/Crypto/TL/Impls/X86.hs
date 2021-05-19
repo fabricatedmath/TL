@@ -17,17 +17,11 @@ shaModeX86 = Proxy
 instance HasHashFunc ShaX86 where
   getHashFunc _ = do
     a <- availabilityHelper c_isAvailable
-    return $ case a == Available of
-      True -> Right $ iterateHashHelper c_iterateHash
-      False -> Left $ availabilityMessage a
-    where 
-      availabilityMessage :: Availability -> String
-      availabilityMessage availability = 
-        case availability of
-          Available -> "Available"
-          NotCompiled -> "Not compiled"
-          NoSSE41 -> "No CPU x86 SSE4.1 extension capability found"
-          NoSha -> "No CPU x86 SHA extension capability found"
+    return $ case a of
+      Available -> Right $ iterateHashHelper c_iterateHash
+      NotCompiled -> Left "Not compiled"
+      NoSSE41 -> Left "No CPU x86 SSE4.1 extension capability found"
+      NoSha -> Left "No CPU x86 SHA extension capability found"
 
 --  enum Availability { Available, NotCompiled, NoSSE41, NoSha };
 data Availability = Available | NotCompiled | NoSSE41 | NoSha

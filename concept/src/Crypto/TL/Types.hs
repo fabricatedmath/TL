@@ -42,8 +42,12 @@ instance Show EncryptedHash where
   show = show . unEncryptedHash
 
 type HashFunc = Int -> Hash -> Hash
+type BulkHashFunc = Int -> [Hash] -> IO [Hash]
 
 type HashMode a = Proxy a
 
 class HasHashFunc a where
   getHashFunc :: Proxy a -> IO (Either String HashFunc)
+
+class HasBulkHashFunc a where
+  getBulkHashFunc :: Proxy a -> IO (Either String BulkHashFunc)
