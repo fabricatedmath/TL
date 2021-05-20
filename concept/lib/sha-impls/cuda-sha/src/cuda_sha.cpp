@@ -153,7 +153,6 @@ int CudaSha::createChains(const int numTowers, const int numIters, uint32_t* con
 }
 
 CudaSha::~CudaSha() {
-  printf("deleted\n");
 #ifdef CUDA_COMPILED
   CUresult result = cuCtxDestroy(cuContext);
   if (result != CUDA_SUCCESS) {

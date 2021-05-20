@@ -2,10 +2,7 @@
 
 module Crypto.TL.Impls.Cuda where
 
---import Control.Monad (void)
-
 import Data.ByteString (ByteString)
---import qualified Data.ByteString as BS (readFile)
 import qualified Data.ByteString.Unsafe as BS (unsafeUseAsCString)
 import Data.FileEmbed (embedFileIfExists)
 import Data.Int (Int32)
@@ -14,8 +11,6 @@ import Data.Proxy (Proxy(..))
 import Foreign.C.String (CString)
 import Foreign.ForeignPtr
 import Foreign.Ptr
-
---import System.IO.Unsafe (unsafePerformIO)
 
 import Crypto.TL.Bulk
 import Crypto.TL.Types
@@ -54,9 +49,6 @@ cudaInit cudaSha =
         BS.unsafeUseAsCString cudaFatBin $ c_cudaInit ptr
       )
 
---cudaCreateChains :: CudaSha -> Int -> [Hash] -> [Hash]
---cudaCreateChains cudaSha numIters hashes = unsafePerformIO $ cudaCreateChains' cudaSha numIters hashes
-
 cudaCreateChains :: CudaSha -> Int -> [Hash] -> IO [Hash]
 cudaCreateChains cudaSha numIters hashes = do  
   let hashbs = toPacked hashes
@@ -66,9 +58,20 @@ cudaCreateChains cudaSha numIters hashes = do
       print errcode
       return $ toUnpacked hashbs
     )
+
+instance HasBulkHashFunc ShaCuda where
+  getBulkHashFunc _ = do
+    a <- cudaIsAvailable
+    case a of
+      Available -> do
+        cudaSha <- newCudaSha
+        errCode <- cudaInit cudaSha
+        case errCode of
+          0 -> return $ return $ cudaCreateChains cudaSha
+          _ -> return $ Left "Failed to Init Cuda"
+      NotCompiled -> return $ Left "Not Compiled"
+      NoNvidiaDriver -> return $ Left "No NVida Driver"
   
-
-
 foreign import ccall safe "cudaIsAvailable"
   c_cudaIsAvailable :: IO Int32
 
@@ -84,16 +87,3 @@ foreign import ccall safe "cudaCreateChains" c_cudaCreateChains
 
 foreign import ccall safe "&cudaDelete" c_cudaDelete
     :: FinalizerPtr CudaShaHandle
-
-instance HasBulkHashFunc ShaCuda where
-  getBulkHashFunc _ = do
-    a <- cudaIsAvailable
-    case a of
-      Available -> do
-        cudaSha <- newCudaSha
-        errCode <- cudaInit cudaSha
-        case errCode of
-          0 -> return $ return $ cudaCreateChains cudaSha
-          _ -> return $ Left "Failed to init cuda"
-      NotCompiled -> return $ Left "Not Compiled"
-      NoNvidiaDriver -> return $ Left "No NVida Driver"

@@ -66,9 +66,11 @@ specBulkHash = do
         it "Hash Sanity Check" $ do
           hashes' <- bulkHashFunc 1 (take 10 $ repeat hashAbc)
           hashes' `shouldBe` (take 10 $ repeat hashAbcGroundTruthIter1)
-
         it "Hash Sanity Check 2" $ do
           hashes' <- bulkHashFunc 2 (take 10 $ repeat hashAbc)
+          hashes' `shouldBe` (take 10 $ repeat hashAbcGroundTruthIter2)
+        it "Hash Sanity Check 3" $ do
+          hashes' <- bulkHashFunc 1 (take 10 $ repeat hashAbcGroundTruthIter1)
           hashes' `shouldBe` (take 10 $ repeat hashAbcGroundTruthIter2)
 
 specPacked :: Spec
