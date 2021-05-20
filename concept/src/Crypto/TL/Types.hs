@@ -41,7 +41,7 @@ newtype EncryptedHash =
 instance Show EncryptedHash where
   show = show . unEncryptedHash
 
-type HashFunc = Int -> Hash -> Hash
+type HashFunc = Int -> Hash -> IO Hash
 type BulkHashFunc = Int -> [Hash] -> IO [Hash]
 
 type HashMode a = Proxy a

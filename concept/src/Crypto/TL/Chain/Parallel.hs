@@ -26,8 +26,8 @@ towerWorker hashFunc = towerWorker'
         Just iters -> 
           do
             startingHash <- randomHash
-            let endingHash = hashFunc iters startingHash
-                tower = Tower iters startingHash endingHash
+            endingHash <- hashFunc iters startingHash
+            let tower = Tower iters startingHash endingHash
             tower `seq` writeChan towersDone tower
             towerWorker' workPool towersDone
 
@@ -56,4 +56,4 @@ createChainParallel
 createChainParallel hashFunc n i = 
   do
     mtowers <- buildTowersParallel hashFunc n i
-    return $ foldTowers hashFunc <$> mtowers
+    maybe (return Nothing) (fmap Just . foldTowers hashFunc) mtowers
