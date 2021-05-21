@@ -7,8 +7,7 @@ module Crypto.TL.Primitives
   , randomHash
   , encrypt, decrypt
   , HashMode
-  , unsafeUseAsCString
-  , flipEndian
+  , hashFlipEndian
   ) where
 
 import qualified Crypto.Hash as Hash (hashWith, SHA256(..))
@@ -18,10 +17,8 @@ import Data.Bits (shiftR, xor)
 import qualified Data.ByteArray as ByteArray
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS (mapAccumR)
-import qualified Data.ByteString.Unsafe as BS (unsafeUseAsCString)
 import Data.Serialize
 import Data.Word (Word16,Word32)
-import Foreign.C.String (CString)
 
 import Crypto.TL.Types
 
@@ -59,11 +56,8 @@ encrypt (Hash bs1) (Hash bs2) = EncryptedHash $ Hash $ fromWord64 $ zipWith xor 
 decrypt :: Hash -> EncryptedHash -> Hash
 decrypt hashKey (EncryptedHash eHash) = unEncryptedHash $ encrypt hashKey eHash
 
-unsafeUseAsCString :: Hash -> (CString -> IO a) -> IO a
-unsafeUseAsCString = BS.unsafeUseAsCString . unHash
-
-flipEndian :: Hash -> Hash
-flipEndian (Hash bs) = Hash $ runPut (putBE leWords)
+hashFlipEndian :: Hash -> Hash
+hashFlipEndian (Hash bs) = Hash $ runPut (putBE leWords)
   where
     getLE :: Get [Word32]
     getLE = replicateM 8 getWord32le

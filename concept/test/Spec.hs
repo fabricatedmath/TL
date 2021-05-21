@@ -3,15 +3,12 @@
 import Test.Hspec
 
 import Control.Monad (replicateM)
-import qualified Crypto.Hash as Hash
-import qualified Data.ByteArray as ByteArray
-import Data.ByteString (ByteString)
-import Data.ByteString.Base16 (decodeBase16)
+import Control.Monad.Except (runExceptT)
 import Data.Serialize
 
 import Crypto.TL
 import Crypto.TL.Bulk (toPacked, toUnpacked)
-import Crypto.TL.Primitives (Hash(..), hashOnce, randomHash)
+import Crypto.TL.Primitives (randomHash)
 import Crypto.TL.Types
 
 import TestVectors
@@ -43,11 +40,14 @@ testHash name mode = do
         Left message -> it ("Skipping due to: " <> message) $ () `shouldBe` ()
         Right hashFunc -> do
           it "Hash Sanity Check" $ do
-            hashFunc 1 hashAbc `shouldBe` hashAbcGroundTruthIter1
+            hashAbcIter1 <- hashFunc 1 hashAbc
+            hashAbcIter1 `shouldBe` hashAbcGroundTruthIter1
           it "Hash Sanity Check 2" $ do
-            hashFunc 1 hashAbcGroundTruthIter1 `shouldBe` hashAbcGroundTruthIter2
+            hashAbcIter2 <- hashFunc 1 hashAbcGroundTruthIter1
+            hashAbcIter2 `shouldBe` hashAbcGroundTruthIter2
           it "Hash Sanity Check 3" $ do
-            hashFunc 2 hashAbc `shouldBe` hashAbcGroundTruthIter2
+            hashAbcIter2 <- hashFunc 2 hashAbc
+            hashAbcIter2 `shouldBe` hashAbcGroundTruthIter2
           describe "Hash Chain" $ do
             specChain hashFunc $ createChain hashFunc
           describe "Hash Chain (Parallel)" $ do
@@ -90,5 +90,6 @@ specChain hashFunc f =
 
         it "Create Chain and Solve Chain" $ do
             Just (hash, chain) <- f 10 10
-            Right hash `shouldBe` solveChain hashFunc chain
+            ehash <- runExceptT $ solveChain hashFunc chain
+            Right hash `shouldBe` ehash
 
