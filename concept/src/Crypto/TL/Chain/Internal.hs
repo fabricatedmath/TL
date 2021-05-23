@@ -1,10 +1,10 @@
 module Crypto.TL.Chain.Internal 
-  ( Tower(..), ChainHead(..), Chain(..), getNumChainBytes
+  ( Tower(..), ChainHead(..), Chain(..)
   ) where
 
 import Crypto.TL.Primitives (Hash, EncryptedHash, Checksum)
 
-import Data.Serialize (Putter, Get, Serialize(..), getInt64le, putInt64le)
+import Data.Serialize (Putter, Get, Serialize(..), getWord64le, putWord64le)
 
 data Tower = 
   Tower
@@ -49,8 +49,8 @@ instance Serialize ChainHead where
   put (ChainHead len hash checksum chain) = 
     do
       let numLinks = chainNumLinks chain
-      putInt64le $ fromIntegral numLinks
-      putInt64le $ fromIntegral len
+      putWord64le $ fromIntegral numLinks
+      putWord64le $ fromIntegral len
       put hash
       put checksum
       putChain numLinks chain
@@ -58,7 +58,7 @@ instance Serialize ChainHead where
   get = 
     do
       numLinks <- getChainNumLinks
-      size <- fromIntegral <$> getInt64le
+      size <- fromIntegral <$> getWord64le
       hash <- get
       checksum <- get
       chain <- getChain numLinks
@@ -68,7 +68,7 @@ putChain :: Int -> Putter Chain
 putChain 0 Empty = pure ()
 putChain i (Chain len ehash checksum chain) =
   do
-    putInt64le $ fromIntegral len
+    putWord64le $ fromIntegral len
     put ehash
     put checksum
     let i' = i-1
@@ -79,7 +79,7 @@ getChain :: Int -> Get Chain
 getChain 0 = pure Empty
 getChain i = 
   do
-    len <- fromIntegral <$> getInt64le
+    len <- fromIntegral <$> getWord64le
     ehash <- get
     checksum <- get
     let i' = i-1
@@ -95,19 +95,4 @@ chainNumLinks = numLinks' 0
       where i' = i+1
 
 getChainNumLinks :: Get Int
-getChainNumLinks = fromIntegral <$> getInt64le
-
-getNumChainBytes :: Get Int
-getNumChainBytes = calcChainBytes <$> getChainNumLinks
-  where
-    calcChainBytes :: Int -> Int
-    calcChainBytes numLinks = chainHeaderSize + chainSize * numLinks
-      where
-        chainHeaderSize :: Int
-        chainHeaderSize = 8 + 8 + 32 + 32
-
-        chainSize :: Int
-        chainSize = 8 + 32 + 32
-
-
-
+getChainNumLinks = fromIntegral <$> getWord64le

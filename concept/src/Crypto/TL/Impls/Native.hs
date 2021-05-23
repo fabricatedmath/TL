@@ -20,7 +20,9 @@ instance HasHashFunc Native where
   getHashFunc _ = return $ Right $ hashIter
     where
       hashIter :: Int -> Hash -> IO Hash
-      hashIter num = return . hashFlipEndian . iterate' num sha256' . hashFlipEndian
+      hashIter num hash = 
+        let hash' = hashFlipEndian . iterate' num sha256' . hashFlipEndian $ hash
+        in hash' `seq` return hash'
         where
           iterate' :: Int -> (a -> a) -> a -> a
           iterate' n f ainit = iterate'' n ainit

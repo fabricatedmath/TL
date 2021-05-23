@@ -1,8 +1,8 @@
 module TL.Create where
 
 import Control.Monad.Except (liftIO, runExceptT)
-
 import Options.Applicative
+import System.FilePath.Posix ((<.>), takeFileName)
 
 import TL.Util
 
@@ -11,7 +11,7 @@ import Crypto.TL
 data Concurrency = Serial | Parallel
     deriving Show
 
-data Create = Create Concurrency Int Int FilePath FilePath
+data Create = Create Concurrency Int Int FilePath
     deriving Show
 
 createParser :: Parser Create
@@ -32,27 +32,20 @@ createParser = Create
     <> help "Number of hash iterations per tower"
     <> metavar "INT"
     )
-  <*> strOption
-    ( long "file"
-    <> short 'f'
-    <> help "File to encrypt with TimeLock"
-    <> metavar "FILENAME"
-    )
-  <*> strOption
-    ( long "out"
-    <> short 'o'
-    <> help "Name of TimeLock file to output"
+  <*> strArgument
+    ( help "File to encrypt with TimeLock"
     <> metavar "FILENAME"
     )
 
 create :: HashFunc -> Create -> IO ()
-create hashFunc (Create concurrency numTowers numIters inFile outFile) = do
+create hashFunc (Create concurrency numTowers numIters inFile) = do
   putStrLn "Creating TimeLock Archive (TLA) file.."
   putStrLn $ "Creating Chain with " <> show (numIters * numTowers) <> " hashes"
   mchain <- getChainingFunc concurrency hashFunc numTowers numIters
   case mchain of
     Nothing -> putStrLn "Failed to create chain"
     Just chain -> do
+      let outFile = takeFileName inFile <.> "tla"
       encryptTLA inFile outFile chain
       putStrLn $ "Wrote TLA file to " <> outFile
 

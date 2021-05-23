@@ -3,7 +3,7 @@
 module Crypto.TL.Chain 
   ( createChain, solveChain, solveChain'
   , ChainHead, Tower(..), foldTowers
-  , getNumChainBytes, numTowersInChain, numHashesInChain
+  , numTowersInChain, numHashesInChain
   ) where
 
 import Control.Monad (foldM, replicateM, unless)
@@ -11,7 +11,7 @@ import Control.Monad.Except (MonadError(..))
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 
-import Crypto.TL.Chain.Internal (Tower(..), ChainHead(..), Chain(..), getNumChainBytes)
+import Crypto.TL.Chain.Internal (Tower(..), ChainHead(..), Chain(..))
 import Crypto.TL.Primitives
 import Crypto.TL.Types
 

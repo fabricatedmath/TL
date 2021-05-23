@@ -11,35 +11,28 @@ import qualified Data.Serialize as S
 
 import Options.Applicative
 
+import System.FilePath.Posix (dropExtension)
+
 import Crypto.TL
 
 import TL.Util
 
-data Solve = Solve Bool FilePath FilePath
+data Solve = Solve Bool FilePath
   deriving Show
 
 solveParser :: Parser Solve
 solveParser = Solve 
   <$> switch 
-  ( long "verbose"
-  <> short 'v'
-  <> help "Print info"
+  ( long "silent"
+  <> help "Suppress Printed Info"
   )
-  <*> strOption
-  ( long "file"
-  <> short 'f'
-  <> help "TimeLock file to solve"
-  <> metavar "FILENAME"
-  )
-  <*> strOption
-  ( long "out"
-  <> short 'o'
-  <> help "Name of file to output"
+  <*> strArgument
+  ( help "TimeLock file to solve"
   <> metavar "FILENAME"
   )
 
 solve :: HashFunc -> Solve -> IO ()
-solve hashFunc (Solve verbose inFile outFile) = do
+solve hashFunc (Solve verbose inFile) = do
   echain <- S.runGet S.get <$> BS.readFile inFile
   case echain of
     Left err -> putStrLn err
@@ -47,6 +40,7 @@ solve hashFunc (Solve verbose inFile outFile) = do
       let numTowers = numTowersInChain chain
           numHashes = numHashesInChain chain
       putStrLn $ "Solving chain with " <> show numTowers <> " towers and " <> show numHashes <> " total hashes" <> "\n"
+      let outFile = dropExtension inFile 
       ehash <- flip evalStateT 0 $ runExceptT $ do
         hash <- getSolvingFunc numTowers verbose hashFunc chain
         liftIO $ decryptTLA inFile outFile hash
@@ -57,9 +51,14 @@ solve hashFunc (Solve verbose inFile outFile) = do
           when verbose $ putStrLn $ "Chain solved with hash: " <> show hash <> "\n"
           putStrLn $ "Wrote decrypted file to " <> outFile
 
-getSolvingFunc :: (MonadError String m, MonadIO m, MonadState Int m) => Int -> Bool -> HashFunc -> (ChainHead -> m Hash)
-getSolvingFunc _ False = solveChain
-getSolvingFunc numTowers True = solveChain' (startReporter numTowers) solveReporter
+getSolvingFunc 
+  :: (MonadError String m, MonadIO m, MonadState Int m) 
+  => Int -- | Num towers
+  -> Bool -- | Suppress Reporting
+  -> HashFunc -- | Hashing Function to Use
+  -> (ChainHead -> m Hash)
+getSolvingFunc _ True = solveChain
+getSolvingFunc numTowers False = solveChain' (startReporter numTowers) solveReporter
 
 startReporter :: (MonadIO m, MonadState Int m) => Int -> (Int -> m ())
 startReporter numTowers i = do

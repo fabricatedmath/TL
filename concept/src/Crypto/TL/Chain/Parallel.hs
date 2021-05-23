@@ -14,19 +14,19 @@ import Crypto.TL.Types
 
 towerWorker 
   :: HashFunc
-  -> Chan (Maybe Int) 
+  -> Int
+  -> Chan (Maybe Hash) 
   -> Chan Tower 
   -> IO ()
-towerWorker hashFunc = towerWorker'
+towerWorker hashFunc numIters = towerWorker'
   where 
     towerWorker' workPool towersDone = do
       mwork <- readChan workPool
       case mwork of
         Nothing -> writeChan workPool Nothing
-        Just iters -> do
-          startingHash <- randomHash
-          endingHash <- hashFunc iters startingHash
-          let tower = Tower iters startingHash endingHash
+        Just startingHash -> do
+          endingHash <- hashFunc numIters startingHash
+          let tower = Tower numIters startingHash endingHash
           tower `seq` writeChan towersDone tower
           towerWorker' workPool towersDone
 
@@ -35,14 +35,14 @@ buildTowersParallel
   -> Int  -- num Towers
   -> Int -- num iters per tower
   -> IO (Maybe (NonEmpty Tower))
-buildTowersParallel hashFunc n i = do
+buildTowersParallel hashFunc n numIters = do
   numCores <- getNumCapabilities
   workPool <- newChan
-  replicateM_ n (writeChan workPool $ Just i)
+  replicateM_ n (fmap Just randomHash >>= writeChan workPool)
   writeChan workPool Nothing
   towersDone <- newChan
   let numThreadsUsed = min n numCores
-  replicateM_ numThreadsUsed $ forkIO (towerWorker hashFunc workPool towersDone)
+  replicateM_ numThreadsUsed $ forkIO (towerWorker hashFunc numIters workPool towersDone)
   towers <- replicateM n $ readChan towersDone
   return $ nonEmpty towers
 

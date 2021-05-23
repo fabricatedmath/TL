@@ -8,9 +8,10 @@ import Crypto.TL (HashFunc)
 
 import TL.Create
 import TL.Solve
+import TL.Bench
 import TL.Util
 
-data Purpose = PurposeCreate Create | PurposeSolve Solve
+data Purpose = PurposeCreate Create | PurposeSolve Solve | PurposeBench Bench
   deriving Show
 
 data TL = TL HashFunc Purpose
@@ -26,6 +27,9 @@ purpose = subparser
       <> command "solve"
          (info (PurposeSolve <$> solveParser <**> helper)
                (progDesc "Solve a TimeLock file"))
+      <> command "bench"
+         (info (PurposeBench <$> benchParser <**> helper)
+               (progDesc "Benchmark Hashing Functions"))
        )
 
 run :: TL -> IO ()
@@ -33,6 +37,7 @@ run (TL haskFunc purpose) =
   case purpose of
     (PurposeCreate c) -> create haskFunc c
     (PurposeSolve s) -> solve haskFunc s
+    (PurposeBench b) -> bench b
 
 opts :: Parser HashFunc -> ParserInfo TL
 opts hashFunc = 

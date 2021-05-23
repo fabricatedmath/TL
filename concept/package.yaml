@@ -33,6 +33,7 @@ dependencies:
 - mtl
 - transformers
 - optparse-applicative
+- number-length
 
 library:
   source-dirs: src
@@ -59,6 +60,8 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - concept
+    - filepath
+    - time
 
 tests:
   concept-test:
