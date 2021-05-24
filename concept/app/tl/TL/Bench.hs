@@ -30,11 +30,10 @@ benchmarkHashFuncs = do
   hashFuncs <- rights . map (\(_,name,e) -> either Left (Right . (name,)) e) <$> getHashFuncs
   mapM_ benchmarkHashFunc hashFuncs
 
-
 benchmarkHashFunc :: (String, HashFunc) -> IO ()
 benchmarkHashFunc (name, hashFunc) = do
   start <- getCurrentTime
-  hash' <- randomHash >>= hashFunc numIters
+  _hash <- randomHash >>= hashFunc numIters
   end <- getCurrentTime
   let time = realToFrac $ nominalDiffTimeToSeconds $ diffUTCTime end start :: Double
       hashesPerSecond = fromIntegral numIters / time

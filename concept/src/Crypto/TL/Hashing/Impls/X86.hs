@@ -1,4 +1,4 @@
-module Crypto.TL.Impls.X86 
+module Crypto.TL.Hashing.Impls.X86 
   ( shaModeX86
   ) where
 
@@ -6,7 +6,7 @@ import Data.Int (Int32)
 import Data.Proxy (Proxy(..))
 import Foreign.C.String
 
-import Crypto.TL.Impls.Util
+import Crypto.TL.Hashing.Util
 import Crypto.TL.Types
 
 data ShaX86
@@ -19,6 +19,15 @@ instance HasHashFunc ShaX86 where
     a <- availabilityHelper c_isAvailable
     return $ case a of
       Available -> Right $ iterateHashHelper c_iterateHash
+      NotCompiled -> Left "Not compiled"
+      NoSSE41 -> Left "No CPU x86 SSE4.1 extension capability found"
+      NoSha -> Left "No CPU x86 SHA extension capability found"
+
+instance HasBulkHashFunc ShaX86 where
+  getBulkHashFunc _ = do
+    a <- availabilityHelper c_isAvailable
+    return $ case a of
+      Available -> Right $ buildTowers Nothing (iterateHashHelper c_iterateHash) 
       NotCompiled -> Left "Not compiled"
       NoSSE41 -> Left "No CPU x86 SSE4.1 extension capability found"
       NoSha -> Left "No CPU x86 SHA extension capability found"

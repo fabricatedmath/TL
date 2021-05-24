@@ -1,17 +1,10 @@
 module Crypto.TL.Chain.Internal 
-  ( Tower(..), ChainHead(..), Chain(..)
+  ( ChainHead(..), Chain(..)
   ) where
 
 import Crypto.TL.Primitives (Hash, EncryptedHash, Checksum)
 
 import Data.Serialize (Putter, Get, Serialize(..), getWord64le, putWord64le)
-
-data Tower = 
-  Tower
-  { towerSize :: !Int
-  , towerStart :: !Hash
-  , towerEnd :: !Hash
-  } deriving Show
 
 -- Start at ChainHead at Hash, hash Int times, working up to Checksum (and verify)
 -- then on to Chain links, if Chain is Empty, then verified Hash is the stop point

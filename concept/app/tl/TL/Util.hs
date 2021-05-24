@@ -34,10 +34,10 @@ data HashBox = forall a. HasHashFunc a => HB (HashMode a)
 
 getHashFuncs :: IO [(Char, String, Either String HashFunc)]
 getHashFuncs = mapM f
-  [ ('x', "x86", HB shaModeX86)
-  , ('a', "Arm", HB shaModeArm)
-  , ('g', "Generic", HB shaModeGeneric)
-  , ('n', "Native", HB shaModeNative)
+  [ ('x', "x86 with SSE4.1 and SHA cpu extensions", HB shaModeX86)
+  , ('a', "Arm with SHA2 cpu extensions", HB shaModeArm)
+  , ('g', "Generic (No cpu extension assistance)", HB shaModeGeneric)
+  , ('n', "Native (Slow)", HB shaModeNative)
   ]
   where 
     f (c,s,HB a) = do

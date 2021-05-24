@@ -13,7 +13,11 @@
 
 int isAvailable_arm() {
     #ifdef ARM_COMPILED
-        return features.sha2;
+        if (!features.sha2) {
+            return NoSha;
+        }
+        
+        return Available;
     #else
         return NotCompiled;
     #endif

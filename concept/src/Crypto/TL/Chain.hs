@@ -1,17 +1,22 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 module Crypto.TL.Chain 
-  ( createChain, solveChain, solveChain'
+  ( solveChain, solveChain'
   , ChainHead, Tower(..), foldTowers
   , numTowersInChain, numHashesInChain
+  , createChain
   ) where
 
-import Control.Monad (foldM, replicateM, unless)
+import Control.Monad (foldM, unless)
 import Control.Monad.Except (MonadError(..))
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
+import Data.List.NonEmpty (NonEmpty(..))
 
-import Crypto.TL.Chain.Internal (Tower(..), ChainHead(..), Chain(..))
+import Control.Monad (replicateM)
+
+import Data.List.NonEmpty (nonEmpty)
+
+import Crypto.TL.Chain.Internal (ChainHead(..), Chain(..))
 import Crypto.TL.Primitives
 import Crypto.TL.Types
 
@@ -42,11 +47,6 @@ solveChain' startReporter solveReporter hashFunc = solveChain''
               let dMsg = decrypt h' e' 
               dMsg `seq` solveChain'' $ ChainHead i' dMsg c' chain'
 
-createChain :: HashFunc -> Int -> Int -> IO (Maybe (Hash, ChainHead))
-createChain hashFunc n i = do
-  mtowers <- buildTowers hashFunc n i
-  maybe (return Nothing) (fmap Just . foldTowers hashFunc) mtowers
-
 numTowersInChain :: ChainHead -> Int
 numTowersInChain (ChainHead _ _ _ chain) = go 1 chain
   where 
@@ -75,8 +75,12 @@ foldTower hashFunc (ChainHead i h c chain) t = do
       chain' = Chain i eHash c chain
   return $ ChainHead (towerSize t) (towerStart t) checksum chain'
 
-buildTowers :: HashFunc -> Int -> Int -> IO (Maybe (NonEmpty Tower))
-buildTowers hashFunc n i = 
-  do
-    towers <- replicateM n $ randomHash >>= (\h -> Tower i h <$> hashFunc i h) 
-    return $ nonEmpty towers
+createChain 
+  :: HashFunc
+  -> BulkHashFunc
+  -> Int -- num towers
+  -> Int -- num iters per tower
+  -> IO (Maybe (Hash, ChainHead))
+createChain hashFunc bulkHashFunc numTowers numIters = do
+  mtowers <- nonEmpty <$> (replicateM numTowers randomHash >>= bulkHashFunc numIters)
+  maybe (return Nothing) (fmap Just . foldTowers hashFunc) mtowers

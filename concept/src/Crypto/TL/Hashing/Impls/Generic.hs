@@ -1,4 +1,4 @@
-module Crypto.TL.Impls.Generic 
+module Crypto.TL.Hashing.Impls.Generic 
   ( shaModeGeneric
   ) where
 
@@ -6,7 +6,7 @@ import Data.Int (Int32)
 import Data.Proxy (Proxy(..))
 import Foreign.C.String
 
-import Crypto.TL.Impls.Util
+import Crypto.TL.Hashing.Util
 import Crypto.TL.Types
 
 data ShaGeneric

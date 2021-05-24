@@ -41,13 +41,21 @@ newtype EncryptedHash =
 instance Show EncryptedHash where
   show = show . unEncryptedHash
 
-type HashFunc = Int -> Hash -> IO Hash
-type BulkHashFunc = Int -> [Hash] -> IO [Hash]
-
 type HashMode a = Proxy a
 
+type HashFunc = Int -> Hash -> IO Hash
+
 class HasHashFunc a where
-  getHashFunc :: Proxy a -> IO (Either String HashFunc)
+  getHashFunc :: HashMode a -> IO (Either String HashFunc)
+
+data Tower = 
+  Tower
+  { towerSize :: !Int
+  , towerStart :: !Hash
+  , towerEnd :: !Hash
+  } deriving Show
+
+type BulkHashFunc = Int -> [Hash] -> IO [Tower]
 
 class HasBulkHashFunc a where
-  getBulkHashFunc :: Proxy a -> IO (Either String BulkHashFunc)
+  getBulkHashFunc :: HashMode a -> IO (Either String BulkHashFunc)

@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Crypto.TL.Impls.Cuda where
+module Crypto.TL.Hashing.Impls.Cuda where
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Unsafe as BS (unsafeUseAsCString)
@@ -12,7 +12,7 @@ import Foreign.C.String (CString)
 import Foreign.ForeignPtr
 import Foreign.Ptr
 
-import Crypto.TL.Bulk
+import Crypto.TL.Hashing.Util
 import Crypto.TL.Types
 
 data ShaCuda
@@ -41,15 +41,17 @@ cudaInit shaCuda =
         BS.unsafeUseAsCString cudaFatBin $ c_cudaInit ptr
       )
 
-cudaCreateChains :: ForeignPtr ShaCudaHandle -> Int -> [Hash] -> IO [Hash]
-cudaCreateChains shaCuda numIters hashes = do  
-  let hashbs = toPacked hashes
-      numHashes = length hashes
-  withForeignPtr shaCuda (\ptr -> do
+-- TODO: Remove errcode printing
+cudaCreateChains :: ForeignPtr ShaCudaHandle -> Int -> [Hash] -> IO [Tower]
+cudaCreateChains shaCuda numIters startingHashes = do  
+  let hashbs = toPacked startingHashes
+      numHashes = length startingHashes
+  endingHashes <- withForeignPtr shaCuda (\ptr -> do
       errcode <- BS.unsafeUseAsCString hashbs $ c_cudaCreateChains ptr (fromIntegral numHashes) (fromIntegral numIters)
       print errcode
       return $ toUnpacked hashbs
     )
+  return $ zipWith (Tower numIters) startingHashes endingHashes
 
 instance HasBulkHashFunc ShaCuda where
   getBulkHashFunc _ = do

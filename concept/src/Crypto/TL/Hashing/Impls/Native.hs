@@ -1,4 +1,4 @@
-module Crypto.TL.Impls.Native 
+module Crypto.TL.Hashing.Impls.Native 
   ( shaModeNative
   ) where
 
