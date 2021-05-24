@@ -2,7 +2,7 @@
 
 #ifdef ARM_COMPILED
     extern "C" {
-        #include <sha256_sha_arm.h>
+        #include <sha256-sha-arm.h>
         #include "cpuinfo_aarch64.h"
     }
 
