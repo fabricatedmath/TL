@@ -22,7 +22,7 @@ int isAvailable_arm() {
 
 void iterateHash_arm(const int numIter, uint32_t* startingHash) {
     #ifdef ARM_COMPILED
-        sha256_iter(numIter, startingHash);
+        sha256_iter_arm(numIter, startingHash);
     #else
         return;
     #endif
