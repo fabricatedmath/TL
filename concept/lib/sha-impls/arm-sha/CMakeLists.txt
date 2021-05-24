@@ -6,7 +6,7 @@ project (arm-sha)
 set(ARM (${CMAKE_HOST_SYSTEM_PROCESSOR} MATCHES "aarch64"))
 
 if (${ARM})
-  set(c_source_files ${c_source_files} kernels/sha256_sha_arm.c)
+  set(c_source_files ${c_source_files} kernels/sha256-sha-arm.c)
 endif()
 
 add_library(${PROJECT_NAME} src/arm_sha.cpp ${c_source_files})
