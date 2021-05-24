@@ -37,8 +37,10 @@ createParser = Create
     <> metavar "FILENAME"
     )
 
-create :: HashFunc -> Create -> IO ()
-create hashFunc (Create concurrency numTowers numIters inFile) = do
+create :: Create -> IO ()
+create (Create concurrency numTowers numIters inFile) = do
+  Just (name, hashFunc) <- getBestHashFunc
+  putStrLn $ "Using " <> name <> " Hash Function"
   putStrLn "Creating TimeLock Archive (TLA) file.."
   putStrLn $ "Creating Chain with " <> show (numIters * numTowers) <> " hashes"
   mchain <- getChainingFunc concurrency hashFunc numTowers numIters

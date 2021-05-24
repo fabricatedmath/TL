@@ -12,4 +12,4 @@ import Crypto.TL.Chain.Parallel (createChainParallel)
 import Crypto.TL.Crypt (encryptTLA, decryptTLA)
 import Crypto.TL.Impls
 import Crypto.TL.Primitives (hashFlipEndian, hashDefault, randomHash)
-import Crypto.TL.Types (Hash, HashFunc)
+import Crypto.TL.Types (Hash, HashFunc, HasHashFunc(..), HashMode)

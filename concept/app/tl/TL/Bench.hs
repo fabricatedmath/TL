@@ -10,6 +10,8 @@ import Text.Printf
 import Crypto.TL
 import Crypto.TL.Util
 
+import TL.Util
+
 data Bench = Bench
     deriving Show
 

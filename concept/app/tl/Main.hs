@@ -14,10 +14,10 @@ import TL.Util
 data Purpose = PurposeCreate Create | PurposeSolve Solve | PurposeBench Bench
   deriving Show
 
-data TL = TL HashFunc Purpose
+data TL = TL Purpose
 
-tl :: Parser HashFunc -> Parser TL
-tl hashFunc = TL <$> hashFunc <*> purpose
+tl :: Parser TL
+tl = TL <$> purpose
 
 purpose :: Parser Purpose
 purpose = subparser
@@ -33,22 +33,19 @@ purpose = subparser
        )
 
 run :: TL -> IO ()
-run (TL haskFunc purpose) = 
+run (TL purpose) = 
   case purpose of
-    (PurposeCreate c) -> create haskFunc c
-    (PurposeSolve s) -> solve haskFunc s
+    (PurposeCreate c) -> create c
+    (PurposeSolve s) -> solve s
     (PurposeBench b) -> bench b
 
-opts :: Parser HashFunc -> ParserInfo TL
-opts hashFunc = 
-  info (tl hashFunc <**> helper) 
+opts :: ParserInfo TL
+opts = 
+  info (tl <**> helper) 
   ( fullDesc
   <> progDesc "TimeLock"
   <> header "hello"
   )
 
 main :: IO ()
-main = 
-  do
-    hashFunc <- hashFuncParser
-    customExecParser (prefs showHelpOnEmpty) (opts hashFunc) >>= run
+main = customExecParser (prefs showHelpOnEmpty) opts >>= run

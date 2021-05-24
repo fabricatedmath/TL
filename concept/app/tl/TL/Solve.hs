@@ -31,9 +31,11 @@ solveParser = Solve
   <> metavar "FILENAME"
   )
 
-solve :: HashFunc -> Solve -> IO ()
-solve hashFunc (Solve verbose inFile) = do
+solve :: Solve -> IO ()
+solve (Solve verbose inFile) = do
   echain <- S.runGet S.get <$> BS.readFile inFile
+  Just (name, hashFunc) <- getBestHashFunc
+  putStrLn $ "Using " <> name <> " Hash Function"
   case echain of
     Left err -> putStrLn err
     Right chain -> do
