@@ -1,5 +1,5 @@
 module Crypto.TL.Hashing.Impls.Generic 
-  ( shaModeGeneric
+  ( shaModeGeneric, shaModeBulkGeneric
   ) where
 
 import Data.Int (Int32)
@@ -13,6 +13,9 @@ data ShaGeneric
 
 shaModeGeneric :: HashMode ShaGeneric
 shaModeGeneric = Proxy
+
+shaModeBulkGeneric :: HashMode (Bulk ShaGeneric)
+shaModeBulkGeneric = Proxy
 
 instance HasHashFunc ShaGeneric where
   getHashFunc _ = do

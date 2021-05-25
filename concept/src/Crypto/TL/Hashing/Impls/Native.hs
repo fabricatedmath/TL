@@ -1,5 +1,5 @@
 module Crypto.TL.Hashing.Impls.Native 
-  ( shaModeNative
+  ( shaModeNative, shaModeBulkNative
   ) where
 
 import qualified Crypto.Hash as Hash (hashWith, SHA256(..))
@@ -15,6 +15,9 @@ data Native
 
 shaModeNative :: HashMode Native
 shaModeNative = Proxy
+
+shaModeBulkNative :: HashMode (Bulk Native)
+shaModeBulkNative = Proxy
 
 instance HasHashFunc Native where
   getHashFunc _ = return $ Right $ hashIter

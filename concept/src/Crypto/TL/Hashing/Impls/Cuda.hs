@@ -1,6 +1,8 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Crypto.TL.Hashing.Impls.Cuda where
+module Crypto.TL.Hashing.Impls.Cuda 
+  ( shaModeCuda
+  ) where
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Unsafe as BS (unsafeUseAsCString)
@@ -35,11 +37,14 @@ maybeCudaFatBin = $(embedFileIfExists "lib/build/sha-impls/cuda-sha/sha256_iter.
 cudaInit :: ForeignPtr ShaCudaHandle -> IO Int32
 cudaInit shaCuda =  
   case maybeCudaFatBin of
-    Nothing -> error "Trying to init cuda, but no cuda fatbin found!"
+    Nothing -> error "Trying to initialize Cuda, but no Cuda fatbin found!"
     Just cudaFatBin -> 
       withForeignPtr shaCuda (\ptr -> 
         BS.unsafeUseAsCString cudaFatBin $ c_cudaInit ptr
       )
+
+cudaGetNumCores :: ForeignPtr ShaCudaHandle -> IO Int
+cudaGetNumCores shaCuda = fromIntegral <$> withForeignPtr shaCuda c_cudaGetNumCores
 
 -- TODO: Remove errcode printing
 cudaCreateChains :: ForeignPtr ShaCudaHandle -> Int -> [Hash] -> IO [Tower]
@@ -61,7 +66,9 @@ instance HasBulkHashFunc ShaCuda where
         shaCuda <- newCudaSha
         errCode <- cudaInit shaCuda
         case errCode of
-          0 -> return $ return $ cudaCreateChains shaCuda
+          0 -> do
+            numCores <- cudaGetNumCores shaCuda
+            return $ Right $ (numCores, cudaCreateChains shaCuda)
           _ -> return $ Left "Failed to Init Cuda"
       NotCompiled -> return $ Left "Not Compiled"
       NoNvidiaDriver -> return $ Left "No NVida Driver"
@@ -77,6 +84,9 @@ foreign import ccall safe "cudaNew" c_cudaNew
 
 foreign import ccall safe "cudaInit" c_cudaInit
     :: Ptr ShaCudaHandle -> CString -> IO Int32
+
+foreign import ccall safe "cudaGetNumCores" c_cudaGetNumCores
+    :: Ptr ShaCudaHandle -> IO Int32
 
 -- change types to 64 bit
 foreign import ccall safe "cudaCreateChains" c_cudaCreateChains

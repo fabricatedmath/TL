@@ -33,8 +33,9 @@ createParser = Create
 create :: Create -> IO ()
 create (Create numTowers numIters inFile) = do
   Just (name, hashFunc) <- getBestHashFunc
-  Right bulkHashFunc <- getBulkHashFunc shaModeCuda
-  putStrLn $ "Using " <> name <> " Hash Function"
+  Just (nameBulk, (_, bulkHashFunc)) <- getBestBulkHashFunc 
+  putStrLn $ "Using Hash Function: " <> name
+  putStrLn $ "Using Bulk Hash Function: " <> nameBulk
   putStrLn "Creating TimeLock Archive (TLA) file.."
   putStrLn $ "Creating Chain with " <> show (numIters * numTowers) <> " hashes"
   mchain <- createChain hashFunc bulkHashFunc numTowers numIters

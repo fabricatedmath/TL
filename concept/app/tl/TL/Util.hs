@@ -27,19 +27,37 @@ hashFuncParser = do
 
 getBestHashFunc :: IO (Maybe (String, HashFunc))
 getBestHashFunc = do
-  hashFuncs <- rights . map (\(f,name,efunc) -> either Left (Right . (name,)) efunc) <$> getHashFuncs
+  hashFuncs <- rights . map (\(f,name,efunc) -> fmap (name,) efunc) <$> getHashFuncs
   return $ listToMaybe hashFuncs
 
 data HashBox = forall a. HasHashFunc a => HB (HashMode a)
 
 getHashFuncs :: IO [(Char, String, Either String HashFunc)]
 getHashFuncs = mapM f
-  [ ('x', "x86 with SSE4.1 and SHA cpu extensions", HB shaModeX86)
-  , ('a', "Arm with SHA2 cpu extensions", HB shaModeArm)
-  , ('g', "Generic (No cpu extension assistance)", HB shaModeGeneric)
-  , ('n', "Native (Slow)", HB shaModeNative)
+  [ ('x', "x86 with SSE4.1 and SHA CPU Extensions", HB shaModeX86)
+  , ('a', "Arm with SHA2 CPU Extensions", HB shaModeArm)
+  , ('g', "Generic (No CPU Extension assistance)", HB shaModeGeneric)
   ]
   where 
     f (c,s,HB a) = do
       ehashFunc <- getHashFunc a
+      return (c,s,ehashFunc)
+
+getBestBulkHashFunc :: IO (Maybe (String, (Int, BulkHashFunc)))
+getBestBulkHashFunc = do
+  hashFuncs <- rights . map (\(f,name,efunc) -> fmap (name,) efunc) <$> getBulkHashFuncs
+  return $ listToMaybe hashFuncs
+
+data HashBoxBulk = forall a. HasBulkHashFunc a => HBB (HashMode a)
+
+getBulkHashFuncs :: IO [(Char, String, Either String (Int, BulkHashFunc))]
+getBulkHashFuncs = mapM f
+  [ ('c', "NVIDIA Cuda", HBB shaModeCuda)
+  , ('x', "x86 with SSE4.1 and SHA CPU Extensions", HBB shaModeBulkX86)
+  , ('a', "Arm with SHA2 CPU Extensions", HBB shaModeBulkArm)
+  , ('g', "Generic (No CPU Extension assistance)", HBB shaModeBulkGeneric)
+  ]
+  where 
+    f (c,s,HBB a) = do
+      ehashFunc <- getBulkHashFunc a
       return (c,s,ehashFunc)

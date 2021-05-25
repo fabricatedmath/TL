@@ -7,7 +7,6 @@ import Control.Monad.Except (runExceptT)
 import Data.Serialize
 
 import Crypto.TL
-import Crypto.TL.Bulk (toPacked, toUnpacked)
 import Crypto.TL.Primitives (randomHash)
 import Crypto.TL.Types
 
@@ -21,6 +20,9 @@ spec = do
     describe "Crytpto.TL.Primitives" $ do
         it "Check SHA256 Sanity From Library" $ do
             hashAbc `shouldBe` hashAbcGroundTruth
+    describe "Crypto.TL.Types" $ do
+      it "Check Show Hash" $ do
+        show hashAbc `shouldBe` "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
     specImpls
     specPacked
     specBulkHash
@@ -51,7 +53,7 @@ testHash name mode = do
           describe "Hash Chain" $ do
             specChain hashFunc $ createChain hashFunc
           describe "Hash Chain (Parallel)" $ do
-            specChain hashFunc $ createChainParallel hashFunc
+            specChain hashFunc $ createChain hashFunc
 
 
 --todo: get programmatic info about cuda topology

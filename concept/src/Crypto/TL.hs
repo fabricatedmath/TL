@@ -10,4 +10,7 @@ import Crypto.TL.Chain (ChainHead, solveChain, solveChain', numTowersInChain, nu
 import Crypto.TL.Crypt (encryptTLA, decryptTLA)
 import Crypto.TL.Hashing.Impls
 import Crypto.TL.Primitives (hashFlipEndian, hashDefault, randomHash)
-import Crypto.TL.Types (Hash, HashFunc, HasHashFunc(..), HashMode, HasBulkHashFunc(..))
+import Crypto.TL.Types 
+  ( Hash, HashFunc, HasHashFunc(..), HashMode
+  , HasBulkHashFunc(..), BulkHashFunc, Bulk
+  )

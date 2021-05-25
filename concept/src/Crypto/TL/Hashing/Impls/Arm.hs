@@ -1,5 +1,5 @@
 module Crypto.TL.Hashing.Impls.Arm 
-  ( shaModeArm
+  ( shaModeArm, shaModeBulkArm
   ) where
 
 import Data.Int (Int32)
@@ -13,6 +13,9 @@ data ShaArm
 
 shaModeArm :: HashMode ShaArm
 shaModeArm = Proxy
+
+shaModeBulkArm :: HashMode (Bulk ShaArm)
+shaModeBulkArm = Proxy
 
 instance HasHashFunc ShaArm where
   getHashFunc _ = do
