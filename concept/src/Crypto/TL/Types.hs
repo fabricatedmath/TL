@@ -62,8 +62,7 @@ class HasHashFunc a where
 
 data Tower = 
   Tower
-  { towerSize :: !Int
-  , towerStart :: !Hash
+  { towerStart :: !Hash
   , towerEnd :: !Hash
   } deriving Show
 
@@ -94,7 +93,7 @@ towerWorker hashFunc numIters = towerWorker'
         Nothing -> writeChan workPool Nothing
         Just startingHash -> do
           endingHash <- hashFunc numIters startingHash
-          let tower = Tower numIters startingHash endingHash
+          let tower = Tower startingHash endingHash
           tower `seq` writeChan towersDone tower
           towerWorker' workPool towersDone
 

@@ -56,7 +56,7 @@ cudaCreateChains shaCuda numIters startingHashes = do
       print errcode
       return $ toUnpacked hashbs
     )
-  return $ zipWith (Tower numIters) startingHashes endingHashes
+  return $ zipWith Tower startingHashes endingHashes
 
 instance HasBulkHashFunc ShaCuda where
   getBulkHashFunc _ = do
