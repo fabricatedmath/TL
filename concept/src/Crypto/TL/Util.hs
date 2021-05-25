@@ -16,7 +16,7 @@ stringifyHashRate a = numString <> " " <> prefix <> "H/s"
     numString = printf "%.3f" (a / 1000 ^ place)
 
 stringifyHash :: Integral a => a -> String
-stringifyHash a' = numString <> " " <> prefix <> "hashes"
+stringifyHash a' = numString <> " " <> prefix <> "Hashes"
   where
     a :: Double = fromIntegral a'
     ndigits = subtract 1 $ numDigits a

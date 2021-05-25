@@ -14,6 +14,7 @@ import Options.Applicative
 import System.FilePath.Posix (dropExtension)
 
 import Crypto.TL
+import Crypto.TL.Util
 
 import TL.Util
 
@@ -32,26 +33,27 @@ solveParser = Solve
   )
 
 solve :: Solve -> IO ()
-solve (Solve verbose inFile) = do
+solve (Solve silent inFile) = do
   echain <- S.runGet S.get <$> BS.readFile inFile
   Just (name, hashFunc) <- getBestHashFunc
-  putStrLn $ "Using " <> name <> " Hash Function"
+  putStrLn $ "Using " <> name <> " Hash Function" <> "\n"
   case echain of
     Left err -> putStrLn err
     Right chain -> do
       let numTowers = numTowersInChain chain
           numHashes = numHashesInChain chain
-      putStrLn $ "Solving chain with " <> show numTowers <> " towers and " <> show numHashes <> " total hashes" <> "\n"
+      unless silent $ putStrLn $ "Solving chain with " <> show numTowers <> " towers and " <> stringifyHash numHashes <> "\n"
       let outFile = dropExtension inFile 
-      ehash <- flip evalStateT 0 $ runExceptT $ do
-        hash <- getSolvingFunc numTowers verbose hashFunc chain
-        liftIO $ decryptTLA inFile outFile hash
-        pure hash
-      case ehash of 
+      result <- flip evalStateT 0 $ runExceptT $ do
+        hash <- getSolvingFunc numTowers silent hashFunc chain
+        liftIO $ do
+          unless silent $ putStrLn $ "Chain solved with hash: " <> show hash <> "\n"
+          unless silent $ putStrLn $ "Decrypting file.." <> "\n"
+          decryptTLA inFile outFile hash
+          unless silent $ putStrLn $ "Wrote decrypted file to " <> outFile
+      case result of 
         Left err -> putStrLn err
-        Right hash -> do
-          when verbose $ putStrLn $ "Chain solved with hash: " <> show hash <> "\n"
-          putStrLn $ "Wrote decrypted file to " <> outFile
+        Right hash -> return ()
 
 getSolvingFunc 
   :: (MonadError String m, MonadIO m, MonadState Int m) 
@@ -66,7 +68,7 @@ startReporter :: (MonadIO m, MonadState Int m) => Int -> (Int -> m ())
 startReporter numTowers i = do
     towerNum <- gets succ
     put towerNum
-    liftIO $ putStrLn $ "Solving tower " <> show towerNum <> " of " <> show numTowers <> " with " <> show i <> " hashes.."
+    liftIO $ putStrLn $ "Solving tower " <> show towerNum <> " of " <> show numTowers <> " with " <> stringifyHash i <> ".."
 
 solveReporter :: (MonadIO m, MonadState Int m) => (Hash -> m ())
 solveReporter hash = do

@@ -7,6 +7,7 @@ import System.FilePath.Posix ((<.>), takeFileName)
 import TL.Util
 
 import Crypto.TL
+import Crypto.TL.Util
 
 data Create = Create Int Int FilePath
     deriving Show
@@ -37,7 +38,7 @@ create (Create numTowers numIters inFile) = do
   putStrLn $ "Using Hash Function: " <> name
   putStrLn $ "Using Bulk Hash Function: " <> nameBulk
   putStrLn "Creating TimeLock Archive (TLA) file.."
-  putStrLn $ "Creating Chain with " <> show (numIters * numTowers) <> " hashes"
+  putStrLn $ "Creating Chain with " <> stringifyHash (numIters * numTowers)
   mchain <- createChain hashFunc bulkHashFunc numTowers numIters
   case mchain of
     Nothing -> putStrLn "Failed to create chain"
