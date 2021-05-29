@@ -2,12 +2,11 @@
 
 module TestVectors where
 
-import Crypto.TL.Primitives (Hash(..))
-
-import Crypto.TL (hashDefault, hashFlipEndian)
+import Crypto.TL.Primitives.Hash
+import Crypto.TL.Primitives.HashFunc
 
 hashAbc :: Hash
-hashAbc = hashFlipEndian $ hashDefault "abc"
+hashAbc = hashFlipEndian $ hashByteString "abc"
 
 hashAbcGroundTruth :: Hash 
 hashAbcGroundTruth = hashFlipEndian $ Hash

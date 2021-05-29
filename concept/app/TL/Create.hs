@@ -1,6 +1,5 @@
 module TL.Create where
-
-import Control.Monad.Except (liftIO, runExceptT)
+  
 import Options.Applicative
 import System.FilePath.Posix ((<.>), takeFileName)
 

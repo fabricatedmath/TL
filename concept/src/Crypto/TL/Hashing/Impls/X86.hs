@@ -7,7 +7,8 @@ import Data.Proxy (Proxy(..))
 import Foreign.C.String
 
 import Crypto.TL.Hashing.Util
-import Crypto.TL.Types
+import Crypto.TL.Primitives.BulkHashFunc
+import Crypto.TL.Primitives.HashFunc
 
 data ShaX86
 

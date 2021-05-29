@@ -8,8 +8,8 @@ import Data.Conduit.Cereal
 import Data.Conduit.Combinators as C
 import Data.Serialize
 
-import Crypto.TL.Chain (ChainHead)
-import Crypto.TL.Primitives (Hash(..), hashToBS)
+import Crypto.TL.Primitives.Chain
+import Crypto.TL.Primitives.Hash
 
 encryptTLA
   :: FilePath -- sourceFile

@@ -1,15 +1,10 @@
 module Main where
 
-import Data.List
-import Data.Monoid
 import Options.Applicative
-
-import Crypto.TL (HashFunc)
 
 import TL.Create
 import TL.Solve
 import TL.Bench
-import TL.Util
 
 data Purpose = PurposeCreate Create | PurposeSolve Solve | PurposeBench Bench
   deriving Show
@@ -33,8 +28,8 @@ purpose = subparser
        )
 
 run :: TL -> IO ()
-run (TL purpose) = 
-  case purpose of
+run (TL p) = 
+  case p of
     (PurposeCreate c) -> create c
     (PurposeSolve s) -> solve s
     (PurposeBench b) -> bench b

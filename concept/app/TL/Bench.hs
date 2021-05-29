@@ -6,7 +6,6 @@ import Control.Monad (replicateM)
 import Data.Either (rights)
 import Data.Time
 import Options.Applicative
-import Text.Printf
 
 import Crypto.TL
 import Crypto.TL.Util
@@ -32,7 +31,7 @@ bench _ =
 benchmarkHashFuncs :: IO () 
 benchmarkHashFuncs = do
   putStrLn $ "Running benchmarks with " <> stringifyHash numIters
-  hashFuncs <- rights . map (\(_,name,e) -> either Left (Right . (name,)) e) <$> getHashFuncs
+  hashFuncs <- rights . map (\(name,e) -> either Left (Right . (name,)) e) <$> getHashFuncs
   mapM_ benchmarkHashFunc hashFuncs
 
 benchmarkHashFunc :: (String, HashFunc) -> IO ()
@@ -51,7 +50,7 @@ bulkHashMultiplier = 16
 benchmarkBulkHashFuncs :: IO () 
 benchmarkBulkHashFuncs = do
   putStrLn $ "Running bulk benchmarks with " <> stringifyHash numIters
-  hashFuncs <- rights . map (\(_,name,e) -> fmap (name,) e) <$> getBulkHashFuncs
+  hashFuncs <- rights . map (\(name,e) -> fmap (name,) e) <$> getBulkHashFuncs
   mapM_ benchmarkBulkHashFunc hashFuncs
 
 benchmarkBulkHashFunc :: (String, (Int, BulkHashFunc)) -> IO ()

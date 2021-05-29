@@ -2,7 +2,7 @@
 
 module TL.Solve where
 
-import Control.Monad.Except (ExceptT(..), MonadError(..), liftIO, runExceptT)
+import Control.Monad.Except (MonadError(..), runExceptT)
 import Control.Monad.IO.Class
 import Control.Monad.State
 
@@ -53,7 +53,7 @@ solve (Solve silent inFile) = do
           unless silent $ putStrLn $ "Wrote decrypted file to " <> outFile
       case result of 
         Left err -> putStrLn err
-        Right hash -> return ()
+        Right _hash -> return ()
 
 getSolvingFunc 
   :: (MonadError String m, MonadIO m, MonadState Int m) 

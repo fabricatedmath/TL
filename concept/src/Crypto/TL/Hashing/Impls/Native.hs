@@ -8,8 +8,9 @@ import qualified Data.ByteArray as ByteArray
 
 import Data.Proxy (Proxy(..))
 
-import Crypto.TL.Primitives
-import Crypto.TL.Types
+import Crypto.TL.Primitives.BulkHashFunc
+import Crypto.TL.Primitives.Hash
+import Crypto.TL.Primitives.HashFunc
 
 data Native
 

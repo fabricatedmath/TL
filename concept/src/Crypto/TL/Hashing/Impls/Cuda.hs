@@ -9,13 +9,14 @@ import qualified Data.ByteString.Unsafe as BS (unsafeUseAsCString)
 import Data.FileEmbed (embedFileIfExists)
 import Data.Int (Int32)
 import Data.Proxy (Proxy(..))
-
 import Foreign.C.String (CString)
 import Foreign.ForeignPtr
 import Foreign.Ptr
 
-import Crypto.TL.Hashing.Util
-import Crypto.TL.Types
+import Crypto.TL.Primitives.BulkHashFunc
+import Crypto.TL.Primitives.Hash
+import Crypto.TL.Primitives.HashFunc
+import Crypto.TL.Primitives.Tower
 
 data ShaCuda
 

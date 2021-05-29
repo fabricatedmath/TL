@@ -7,9 +7,11 @@ import Control.Monad (replicateM)
 --import Data.Serialize
 
 import Crypto.TL
-import Crypto.TL.Hashing.Util
-import Crypto.TL.Primitives (incrementHash)
-import Crypto.TL.Types
+
+import Crypto.TL.Header
+import Crypto.TL.Primitives.Checksum
+import Crypto.TL.Primitives.ShortHash
+import Crypto.TL.Primitives.Tower
 
 import TestVectors
 

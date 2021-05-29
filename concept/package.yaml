@@ -38,7 +38,6 @@ library:
   source-dirs: src
   ghc-options:
     - -Wall
-    - -Werror
     - -O2
   extra-libraries: 
     - arm-sha
@@ -52,7 +51,7 @@ library:
 executables:
   tl:
     main:                Main.hs
-    source-dirs:         app/tl
+    source-dirs:         app
     ghc-options:
     - -threaded
     - -rtsopts
