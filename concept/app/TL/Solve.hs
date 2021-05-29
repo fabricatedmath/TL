@@ -14,6 +14,7 @@ import Options.Applicative
 import System.FilePath.Posix (dropExtension)
 
 import Crypto.TL
+import Crypto.TL.Archive
 import Crypto.TL.Util
 
 import TL.Util

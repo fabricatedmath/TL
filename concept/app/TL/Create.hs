@@ -6,6 +6,7 @@ import System.FilePath.Posix ((<.>), takeFileName)
 import TL.Util
 
 import Crypto.TL
+import Crypto.TL.Archive
 import Crypto.TL.Util
 
 data Create = Create Int Int FilePath

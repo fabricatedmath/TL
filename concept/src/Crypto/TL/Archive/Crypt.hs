@@ -1,4 +1,6 @@
-module Crypto.TL.Crypt where
+module Crypto.TL.Archive.Crypt 
+  ( decryptTLA, encryptTLA
+  ) where
 
 import Control.Monad (void)
 import Crypto.Cipher.ChaChaPoly1305.Conduit

@@ -3,12 +3,12 @@
 import Test.Hspec
 
 import Control.Monad (replicateM)
---import Control.Monad.Except (runExceptT)
---import Data.Serialize
+import Control.Monad.Except (runExceptT)
+import Data.Serialize
 
 import Crypto.TL
 
-import Crypto.TL.Header
+import Crypto.TL.Archive.Header
 import Crypto.TL.Primitives.Checksum
 import Crypto.TL.Primitives.ShortHash
 import Crypto.TL.Primitives.Tower
@@ -55,6 +55,8 @@ spec = do
     specPacked
     specHashImpls
     specBulkHashImpls
+    specChain
+    specHeader
 
 specHashImpls :: Spec
 specHashImpls = do
@@ -79,9 +81,6 @@ specHash name mode = do
           it "Hash Sanity Check 3" $ do
             hashAbcIter2 <- hashFunc 2 hashAbc
             hashAbcIter2 `shouldBe` hashAbcGroundTruthIter2
-{-          describe "Hash Chain" $ do
-            specChain hashFunc $ createChain hashFunc
-            -}
 
 specBulkHashImpls :: Spec
 specBulkHashImpls = do
@@ -117,16 +116,32 @@ specPacked = do
       hashes <- replicateM 10 randomHash
       hashes `shouldBe` toUnpacked (toPacked hashes)
 
-{-
-specChain :: HashFunc -> (Int -> Int -> IO (Maybe (Hash,ChainHead))) -> Spec
-specChain hashFunc f = 
+specHeader :: Spec
+specHeader = do
+  describe "Crypto.TL.Archive.Header" $ do
+    it "Header Test" $ do
+      Right hashFunc <- getHashFunc shaModeGeneric
+      Right (_capabilities, bulkHashFunc) <- getBulkHashFunc shaModeBulkGeneric
+      let tlaFileName = TLAFileName $ TLAText $ "Dogs.txt"
+      Just (_hash, chainHead) <- createChain hashFunc bulkHashFunc 10 10
+      let header = TLAHeader MagicHash tlaShaHashMethod chainHead tlaFileName
+      Right header `shouldBe` decode (encode header)
+      putStrLn $ show $ encode header
+
+
+specChain :: Spec
+specChain = 
     do
+      describe "Crypto.TL.Primitives.Chain" $ do
         it "Chain Serialize/Deserialize" $ do
-            Just (_hash, chain) <- f 10 10
-            Right chain `shouldBe` decode (encode chain)
+          Right hashFunc <- getHashFunc shaModeGeneric
+          Right (_capabilities, bulkHashFunc) <- getBulkHashFunc shaModeBulkGeneric
+          Just (_hash, chain) <- createChain hashFunc bulkHashFunc 10 10
+          Right chain `shouldBe` decode (encode chain)
 
         it "Create Chain and Solve Chain" $ do
-            Just (hash, chain) <- f 10 10
-            ehash <- runExceptT $ solveChain hashFunc chain
-            Right hash `shouldBe` ehash
--}
+          Right hashFunc <- getHashFunc shaModeGeneric
+          Right (_capabilities, bulkHashFunc) <- getBulkHashFunc shaModeBulkGeneric
+          Just (hash, chain) <- createChain hashFunc bulkHashFunc 10 10
+          ehash <- runExceptT $ solveChain hashFunc chain
+          Right hash `shouldBe` ehash
