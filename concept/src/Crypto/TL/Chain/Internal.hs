@@ -1,5 +1,5 @@
 module Crypto.TL.Chain.Internal 
-  ( ChainHead(..), Chain(..)
+  ( ChainHead(..), Chain(..), chainNumLinks
   ) where
 
 import Crypto.TL.Primitives (Hash, EncryptedHash, Checksum)

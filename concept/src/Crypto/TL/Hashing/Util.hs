@@ -1,7 +1,7 @@
 module Crypto.TL.Hashing.Util where
 
 import Data.ByteString (ByteString)
-import qualified Data.ByteString as BS (copy, length)
+import qualified Data.ByteString as BS (length)
 import qualified Data.ByteString.Unsafe as BS (unsafeUseAsCString)
 import Data.Int (Int32)
 import Foreign.C.String (CString)
@@ -19,9 +19,9 @@ availabilityHelper = fmap $ toEnum . fromEnum
 
 iterateHashHelper :: (Int -> CString -> IO ()) -> HashFunc
 iterateHashHelper ffiHashFunction numHashes hash = do
-  let bs' = BS.copy $ unHash hash
+  let bs' = hashToBS hash
   BS.unsafeUseAsCString bs' (ffiHashFunction numHashes)
-  pure $ Hash bs'
+  pure $ bsToHash bs'
 {-# INLINABLE iterateHashHelper #-}
 
 toPacked :: [Hash] -> ByteString

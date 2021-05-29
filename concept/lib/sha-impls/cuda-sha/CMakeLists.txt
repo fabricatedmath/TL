@@ -7,7 +7,7 @@ if (CUDAToolkit_FOUND)
     target_compile_definitions(${PROJECT_NAME} PRIVATE CUDA_COMPILED)
 
     add_custom_command(OUTPUT sha256_iter.fatbin
-        DEPENDS kernels/sha256_iter.cu
+        DEPENDS kernels/sha256_iter.cu Makefile
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
         COMMAND export SOURCE_DIR=${CMAKE_CURRENT_BINARY_DIR} && make 
     )

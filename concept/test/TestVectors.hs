@@ -2,27 +2,24 @@
 
 module TestVectors where
 
-import qualified Crypto.Hash as Hash
+import Crypto.TL.Primitives (Hash(..))
 
-import Crypto.TL.Primitives (Hash(..), hashFlipEndian)
-
-import qualified Data.ByteArray as ByteArray
-
-import Data.ByteString (ByteString)
-import Data.ByteString.Base16 (decodeBase16)
+import Crypto.TL (hashDefault, hashFlipEndian)
 
 hashAbc :: Hash
-hashAbc = hashFlipEndian $ Hash hash
-    where hash = ByteArray.convert $ Hash.hashWith Hash.SHA256 ("abc" :: ByteString)
+hashAbc = hashFlipEndian $ hashDefault "abc"
 
 hashAbcGroundTruth :: Hash 
-hashAbcGroundTruth = hashFlipEndian $ Hash hash
-    where Right hash = decodeBase16 "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+hashAbcGroundTruth = hashFlipEndian $ Hash
+    0xba7816bf 0x8f01cfea 0x414140de 0x5dae2223
+    0xb00361a3 0x96177a9c 0xb410ff61 0xf20015ad
 
 hashAbcGroundTruthIter1 :: Hash 
-hashAbcGroundTruthIter1 = hashFlipEndian $ Hash hash
-    where Right hash = decodeBase16 "4f8b42c22dd3729b519ba6f68d2da7cc5b2d606d05daed5ad5128cc03e6c6358"
+hashAbcGroundTruthIter1 = hashFlipEndian $ Hash 
+    0x4f8b42c2 0x2dd3729b 0x519ba6f6 0x8d2da7cc
+    0x5b2d606d 0x05daed5a 0xd5128cc0 0x3e6c6358
 
 hashAbcGroundTruthIter2 :: Hash 
-hashAbcGroundTruthIter2 = hashFlipEndian $ Hash hash
-    where Right hash = decodeBase16 "f2a778f1a6ed3d5bc59a5d79104c598f3f07093f240ca4e91333fb09ed4f36da"
+hashAbcGroundTruthIter2 = hashFlipEndian $ Hash
+    0xf2a778f1 0xa6ed3d5b 0xc59a5d79 0x104c598f
+    0x3f07093f 0x240ca4e9 0x1333fb09 0xed4f36da

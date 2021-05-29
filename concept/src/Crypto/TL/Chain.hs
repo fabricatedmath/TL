@@ -16,7 +16,7 @@ import Control.Monad (replicateM)
 
 import Data.List.NonEmpty (nonEmpty)
 
-import Crypto.TL.Chain.Internal (ChainHead(..), Chain(..))
+import Crypto.TL.Chain.Internal
 import Crypto.TL.Primitives
 import Crypto.TL.Types
 
@@ -48,11 +48,7 @@ solveChain' startReporter solveReporter hashFunc = solveChain''
               dMsg `seq` solveChain'' $ ChainHead towerSize dMsg c' chain'
 
 numTowersInChain :: ChainHead -> Int
-numTowersInChain (ChainHead _ _ _ chain) = go 1 chain
-  where 
-    go i Empty = i
-    go i (Chain _ _ c) = i' `seq` go i' c
-      where i' = i+1
+numTowersInChain (ChainHead _ _ _ chain) = succ $ chainNumLinks chain
 
 numHashesInChain :: ChainHead -> Int
 numHashesInChain chainHead@(ChainHead towerSize _ _ _) = numTowersInChain chainHead * towerSize

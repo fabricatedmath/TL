@@ -7,35 +7,63 @@ module Crypto.TL.Types
   ( Hash(..), Checksum(..), EncryptedHash(..)
   , HashMode, HashFunc, HasHashFunc(..)
   , Bulk, HasBulkHashFunc(..), BulkHashFunc
-  , Tower(..)
-  , fromRight
+  , Tower(..), ShortHash(..)
+  , hashFlipEndian, shortHashFlipEndian
   ) where
 
 import Control.Concurrent
 import Control.Monad (replicateM, replicateM_)
-import Data.ByteString (ByteString)
-import qualified Data.ByteString as BS (unpack)
-import Data.ByteString.Base16 (encodeBase16')
-import Data.Char (chr)
+
 import Data.Maybe (fromMaybe)
 import Data.Proxy (Proxy(..))
 import Data.Serialize
+import Data.Word (Word32, byteSwap32)
+import Text.Printf (printf)
 
-newtype Hash = 
+data Hash = 
   Hash 
-  { unHash :: ByteString
-  } deriving Eq
+  {-# UNPACK #-} !Word32
+  {-# UNPACK #-} !Word32
+  {-# UNPACK #-} !Word32
+  {-# UNPACK #-} !Word32
+  {-# UNPACK #-} !Word32
+  {-# UNPACK #-} !Word32
+  {-# UNPACK #-} !Word32
+  {-# UNPACK #-} !Word32
+  deriving Eq
 
-fromRight :: Either a b -> b
-fromRight (Right b) = b
-fromRight (Left _) = error "Failed to convert value to Right"
+mapHash :: (Word32 -> Word32) -> Hash -> Hash
+mapHash f (Hash h7 h6 h5 h4 h3 h2 h1 h0) = 
+  Hash (f h7) (f h6) (f h5) (f h4) (f h3) (f h2) (f h1) (f h0)
+
+hashFlipEndian :: Hash -> Hash
+hashFlipEndian = mapHash byteSwap32
 
 instance Show Hash where
-  show = map (chr . fromEnum) . BS.unpack . encodeBase16' . unHash
+  show hash = printf formatString h7 h6 h5 h4 h3 h2 h1 h0
+    where (Hash h7 h6 h5 h4 h3 h2 h1 h0) = hashFlipEndian hash
+          formatString = concat $ replicate 8 "%08x"
   
 instance Serialize Hash where
-  put = mapM_ putWord32be . fromRight . runGet (replicateM 8 getWord32be) . unHash
-  get = Hash . runPut . mapM_ putWord32be <$> replicateM 8 getWord32be
+  put (Hash h7 h6 h5 h4 h3 h2 h1 h0) = do
+    putWord32be h7 
+    putWord32be h6
+    putWord32be h5 
+    putWord32be h4 
+    putWord32be h3 
+    putWord32be h2
+    putWord32be h1
+    putWord32be h0
+  get = 
+    Hash 
+    <$> getWord32be 
+    <*> getWord32be 
+    <*> getWord32be 
+    <*> getWord32be 
+    <*> getWord32be 
+    <*> getWord32be 
+    <*> getWord32be 
+    <*> getWord32be
 
 newtype Checksum = 
     Checksum 
@@ -64,7 +92,7 @@ data Tower =
   Tower
   { towerStart :: !Hash
   , towerEnd :: !Hash
-  } deriving Show
+  } deriving (Eq, Show)
 
 data Bulk a
 
@@ -113,3 +141,21 @@ buildTowers mlimit hashFunc numIters startingHashes = do
   let numThreadsUsed = min (fromMaybe maxBound mlimit) $ min numTowers numCores
   replicateM_ numThreadsUsed $ forkIO (towerWorker hashFunc numIters workPool towersDone)
   replicateM numTowers $ readChan towersDone
+
+data ShortHash = ShortHash {-# UNPACK #-} !Word32 !Word32
+  deriving Eq
+
+instance Show ShortHash where
+  show shortHash = printf formatString h7 h6
+    where (ShortHash h7 h6) = shortHashFlipEndian shortHash
+          formatString = concat $ replicate 2 "%08x"
+
+shortHashFlipEndian :: ShortHash -> ShortHash
+shortHashFlipEndian (ShortHash h7 h6) = ShortHash (byteSwap32 h7) (byteSwap32 h6)
+
+instance Serialize ShortHash where
+  put (ShortHash h7 h6) = do
+    putWord32be h7
+    putWord32be h6
+  get = 
+    ShortHash <$> getWord32be <*> getWord32be 

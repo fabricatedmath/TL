@@ -1,5 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
-
 module Crypto.TL.Crypt where
 
 import Control.Monad (void)
@@ -10,23 +8,25 @@ import Data.Conduit.Cereal
 import Data.Conduit.Combinators as C
 import Data.Serialize
 
-import Crypto.TL.Primitives (Hash(..))
 import Crypto.TL.Chain (ChainHead)
+import Crypto.TL.Primitives (Hash(..), hashToBS)
 
 encryptTLA
   :: FilePath -- sourceFile
   -> FilePath -- targetFile
   -> (Hash, ChainHead) 
   -> IO ()
-encryptTLA inFile outFile ((Hash hashbs), chain) = do
+encryptTLA inFile outFile (hash, chain) = do
   nonce <- CRT.getRandomBytes 12
-  runConduitRes $ (sourcePut (put chain) >> (sourceFile inFile .| encrypt nonce hashbs)) .| sinkFile outFile
+  let hashBS = hashToBS hash
+  runConduitRes $ (sourcePut (put chain) >> (sourceFile inFile .| encrypt nonce hashBS)) .| sinkFile outFile
 
 decryptTLA
   :: FilePath -- sourceFile
   -> FilePath -- targetFile
   -> Hash
   -> IO ()
-decryptTLA inFile outFile (Hash hashbs) = do
+decryptTLA inFile outFile hash = do
   let sinkGetChain = void $ sinkGet (get :: Get ChainHead)
-  runConduitRes $ sourceFile inFile .| (sinkGetChain >> decrypt hashbs) .| sinkFile outFile
+      hashBS = hashToBS hash
+  runConduitRes $ sourceFile inFile .| (sinkGetChain >> decrypt hashBS) .| sinkFile outFile

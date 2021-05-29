@@ -9,7 +9,7 @@ module Crypto.TL
 import Crypto.TL.Chain (ChainHead, solveChain, solveChain', numTowersInChain, numHashesInChain, createChain)
 import Crypto.TL.Crypt (encryptTLA, decryptTLA)
 import Crypto.TL.Hashing.Impls
-import Crypto.TL.Primitives (hashFlipEndian, hashDefault, randomHash)
+import Crypto.TL.Primitives (hashFlipEndian, hashDefault, randomHash, magicHash, hashToShortHash)
 import Crypto.TL.Types 
   ( Hash, HashFunc, HasHashFunc(..), HashMode
   , HasBulkHashFunc(..), BulkHashFunc, Bulk

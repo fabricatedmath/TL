@@ -24,7 +24,7 @@ instance HasHashFunc Native where
     where
       hashIter :: Int -> Hash -> IO Hash
       hashIter num hash = 
-        let hash' = hashFlipEndian . iterate' num sha256' . hashFlipEndian $ hash
+        let hash' = hashFlipEndian . iterate' num sha256' $ hashFlipEndian $ hash
         in hash' `seq` return hash'
         where
           iterate' :: Int -> (a -> a) -> a -> a
@@ -38,4 +38,4 @@ instance HasHashFunc Native where
                   i' = i-1
 
           sha256' :: Hash -> Hash
-          sha256' = Hash . ByteArray.convert . Hash.hashWith Hash.SHA256 . unHash
+          sha256' = bsToHash . ByteArray.convert . Hash.hashWith Hash.SHA256 . hashToBS
