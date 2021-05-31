@@ -1,8 +1,6 @@
 module Crypto.TL.Primitives.Hash 
   ( Hash(..)
-  , hashFlipEndian
-  , randomHash
-  , bsToHash, hashToBS
+  , hashFlipEndian, randomHash, bsToHash, hashToBS
   ) where
 
 import qualified Crypto.Random.Types as CRT (getRandomBytes)

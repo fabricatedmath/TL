@@ -1,8 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Crypto.TL.Primitives.Checksum 
-  ( Checksum, calcChecksum, verifyChecksum
-  , incrementHash
+  ( Checksum, calcChecksum, verifyChecksum, incrementHash
   ) where
 
 import Data.Serialize

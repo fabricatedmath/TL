@@ -1,15 +1,9 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Crypto.TL.Archive.Header 
-  ( TLAHeader(..), tlaHeader
-  , tlaGetFileName
-  , tlaGetChainHead
-  , magicHash
-  , TLAFileName(..)
-  , TLAText(..)
-  , MagicHash(..)
-  , tlaShaHashMethod
-  , tlaCurrentVersion
+  ( TLAHeader(..), MagicHash(..), TLAFileName(..), TLAText(..)
+  , tlaHeader, tlaGetFileName, tlaGetChainHead
+  , magicHash, tlaShaHashMethod, tlaCurrentVersion
   ) where
 
 import Control.Monad (replicateM, when)

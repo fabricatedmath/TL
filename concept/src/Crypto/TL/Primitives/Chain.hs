@@ -2,9 +2,8 @@
 
 module Crypto.TL.Primitives.Chain
   ( ChainHead(..)
-  , solveChain, solveChain'
+  , createChain, solveChain, solveChain'
   , numTowersInChain, numHashesInChain
-  , createChain
   ) where
 
 import Control.Monad (foldM, replicateM, unless)
