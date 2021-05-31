@@ -1,16 +1,52 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module Crypto.TL.Archive.Header where
+module Crypto.TL.Archive.Header 
+  ( TLAHeader(..), tlaHeader
+  , tlaGetFileName
+  , tlaGetChainHead
+  , magicHash
+  , TLAFileName(..)
+  , TLAText(..)
+  , MagicHash(..)
+  , tlaShaHashMethod
+  , tlaCurrentVersion
+  ) where
 
 import Control.Monad (replicateM, when)
 import Data.Serialize
+import Data.Word (Word8)
+
+import System.FilePath.Posix (takeFileName)
 
 import Crypto.TL.Primitives.Chain
 import Crypto.TL.Primitives.Hash
 import Crypto.TL.Primitives.ShortHash
 
-data TLAHeader = TLAHeader MagicHash TLAHashMethod ChainHead TLAFileName
+tlaHeader :: ChainHead -> FilePath -> TLAHeader
+tlaHeader chainHead fp = 
+  let tlaFileName = TLAFileName $ TLAText $ takeFileName fp
+  in TLAHeader MagicHash tlaCurrentVersion tlaShaHashMethod chainHead tlaFileName
+
+tlaGetChainHead :: TLAHeader -> ChainHead
+tlaGetChainHead (TLAHeader _ _ _ chainHead _) = chainHead
+
+tlaGetFileName :: TLAHeader -> String
+tlaGetFileName (TLAHeader _ _ _ _ (TLAFileName (TLAText fileName))) = fileName
+
+data TLAHeader = TLAHeader MagicHash TLAVersion TLAHashMethod ChainHead TLAFileName
   deriving (Eq, Show)
+
+data TLAVersion = TLAVersion Word8 Word8
+  deriving (Eq, Show)
+
+tlaCurrentVersion :: TLAVersion
+tlaCurrentVersion = TLAVersion 0 1
+
+instance Serialize TLAVersion where
+  put (TLAVersion major minor) = do
+    put major
+    put minor
+  get = TLAVersion <$> get <*> get
 
 newtype TLAHashMethod = TLAHashMethod TLAText
   deriving (Eq, Serialize, Show)
@@ -33,12 +69,13 @@ instance Serialize TLAText where
     TLAText <$> replicateM len get
 
 instance Serialize TLAHeader where
-  put (TLAHeader tlahash tlahashMethod chainHead tlaFileName) = do
-    put tlahash
-    put tlahashMethod
+  put (TLAHeader tlaMagicHash tlaVersion tlaHashMethod chainHead tlaFileName) = do
+    put tlaMagicHash
+    put tlaVersion
+    put tlaHashMethod
     put chainHead
     put tlaFileName
-  get = TLAHeader <$> get <*> get <*> get <*> get
+  get = TLAHeader <$> get <*> get <*> get <*> get <*> get
 
 data MagicHash = MagicHash
   deriving (Eq, Show)

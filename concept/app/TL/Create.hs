@@ -1,7 +1,7 @@
 module TL.Create where
   
 import Options.Applicative
-import System.FilePath.Posix ((<.>), takeFileName)
+import System.FilePath.Posix ((<.>), takeBaseName)
 
 import TL.Util
 
@@ -43,6 +43,6 @@ create (Create numTowers numIters inFile) = do
   case mchain of
     Nothing -> putStrLn "Failed to create chain"
     Just chain -> do
-      let outFile = takeFileName inFile <.> "tla"
-      encryptTLA inFile outFile chain
+      let outFile = takeBaseName inFile <.> "tla"
+      writeTLA inFile outFile chain
       putStrLn $ "Wrote TLA file to " <> outFile

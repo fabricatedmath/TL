@@ -35,26 +35,24 @@ solveParser = Solve
 
 solve :: Solve -> IO ()
 solve (Solve silent inFile) = do
-  echain <- S.runGet S.get <$> BS.readFile inFile
+  header <- readTLAHeader inFile
   Just (name, hashFunc) <- getBestHashFunc
   putStrLn $ "Using " <> name <> " Hash Function" <> "\n"
-  case echain of
+  let chain = tlaGetChainHead header
+      numTowers = numTowersInChain chain
+      numHashes = numHashesInChain chain
+  unless silent $ putStrLn $ "Solving chain with " <> show numTowers <> " towers and " <> stringifyHash numHashes <> "\n"
+  let outFile = tlaGetFileName header
+  result <- flip evalStateT 0 $ runExceptT $ do
+    hash <- getSolvingFunc numTowers silent hashFunc chain
+    liftIO $ do
+      unless silent $ putStrLn $ "Chain solved with hash: " <> show hash <> "\n"
+      unless silent $ putStrLn $ "Decrypting file.." <> "\n"
+      decryptTLA inFile outFile hash
+      unless silent $ putStrLn $ "Wrote decrypted file to " <> outFile
+  case result of 
     Left err -> putStrLn err
-    Right chain -> do
-      let numTowers = numTowersInChain chain
-          numHashes = numHashesInChain chain
-      unless silent $ putStrLn $ "Solving chain with " <> show numTowers <> " towers and " <> stringifyHash numHashes <> "\n"
-      let outFile = dropExtension inFile 
-      result <- flip evalStateT 0 $ runExceptT $ do
-        hash <- getSolvingFunc numTowers silent hashFunc chain
-        liftIO $ do
-          unless silent $ putStrLn $ "Chain solved with hash: " <> show hash <> "\n"
-          unless silent $ putStrLn $ "Decrypting file.." <> "\n"
-          decryptTLA inFile outFile hash
-          unless silent $ putStrLn $ "Wrote decrypted file to " <> outFile
-      case result of 
-        Left err -> putStrLn err
-        Right _hash -> return ()
+    Right _hash -> return ()
 
 getSolvingFunc 
   :: (MonadError String m, MonadIO m, MonadState Int m) 

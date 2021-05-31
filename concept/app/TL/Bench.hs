@@ -45,7 +45,7 @@ benchmarkHashFunc (name, hashFunc) = do
   putStrLn $ "\t" <> name <> ": " <> stringifyHashRate hashesPerSecond
 
 bulkHashMultiplier :: Int
-bulkHashMultiplier = 16
+bulkHashMultiplier = 4
 
 benchmarkBulkHashFuncs :: IO () 
 benchmarkBulkHashFuncs = do

@@ -124,10 +124,8 @@ specHeader = do
       Right (_capabilities, bulkHashFunc) <- getBulkHashFunc shaModeBulkGeneric
       let tlaFileName = TLAFileName $ TLAText $ "Dogs.txt"
       Just (_hash, chainHead) <- createChain hashFunc bulkHashFunc 10 10
-      let header = TLAHeader MagicHash tlaShaHashMethod chainHead tlaFileName
+      let header = TLAHeader MagicHash tlaCurrentVersion tlaShaHashMethod chainHead tlaFileName
       Right header `shouldBe` decode (encode header)
-      putStrLn $ show $ encode header
-
 
 specChain :: Spec
 specChain = 
