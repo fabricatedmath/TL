@@ -37,9 +37,7 @@ tlaCurrentVersion :: TLAVersion
 tlaCurrentVersion = TLAVersion 0 1
 
 instance Serialize TLAVersion where
-  put (TLAVersion major minor) = do
-    put major
-    put minor
+  put (TLAVersion major minor) = put major >> put minor
   get = TLAVersion <$> get <*> get
 
 newtype TLAHashMethod = TLAHashMethod TLAText

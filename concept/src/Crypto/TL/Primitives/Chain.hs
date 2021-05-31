@@ -4,6 +4,7 @@ module Crypto.TL.Primitives.Chain
   ( ChainHead(..)
   , createChain, solveChain, solveChain'
   , numTowersInChain, numHashesInChain
+  , resumeChainFrom
   ) where
 
 import Control.Monad (foldM, replicateM, unless)
@@ -99,6 +100,22 @@ chainNumLinks = numLinks' 0
 
 getChainNumLinks :: Get Int
 getChainNumLinks = fromIntegral <$> getWord64le
+
+resumeChainFrom :: HashFunc -> Hash -> ChainHead -> IO (Maybe (Int, Either Hash ChainHead))
+resumeChainFrom hashFunc hash (ChainHead hashesPerTower _ startChecksum chain) = do
+  hashChecksum <- calcChecksum hashFunc hash
+  return $ resumeChainFrom' hashesPerTower hash hashChecksum startChecksum chain
+
+resumeChainFrom' :: Int -> Hash -> Checksum -> Checksum -> Chain -> Maybe (Int, Either Hash ChainHead)
+resumeChainFrom' hashesPerTower hash hashChecksum = go 0
+  where 
+    go i thisChecksum Empty
+      | hashChecksum == thisChecksum = Just (i, Left hash)
+      | otherwise = Nothing
+    go i thisChecksum (Chain encryptedHash chainChecksum chain')
+      | hashChecksum == thisChecksum = Just (i, Right $ ChainHead hashesPerTower (decryptHash hash encryptedHash) chainChecksum chain')
+      | otherwise = i' `seq` go i' chainChecksum chain'
+      where i' = i+1
 
 solveChain :: (MonadError String m, MonadIO m) => HashFunc -> ChainHead -> m Hash
 solveChain = solveChain' noreport noreport

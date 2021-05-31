@@ -26,6 +26,8 @@ spec = do
     describe "Crypto.TL.Types" $ do
       it "Check Show Hash" $ do
         show hashAbc `shouldBe` "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+      it "Check Hash" $ do
+        stringToHash "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad" `shouldBe` Just hashAbc
     describe "Crypto.TL.Primitives" $ do
       it "Test Magic Hash 1" $ do
         show magicHash `shouldBe` "ad830d9906e6264093497b5e51b56ff56c7980884a37aeb3289352fa702da3b9"

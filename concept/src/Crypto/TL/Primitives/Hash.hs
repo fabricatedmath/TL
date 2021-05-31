@@ -1,11 +1,14 @@
 module Crypto.TL.Primitives.Hash 
   ( Hash(..)
   , hashFlipEndian, randomHash, bsToHash, hashToBS
+  , stringToHash
   ) where
 
 import qualified Crypto.Random.Types as CRT (getRandomBytes)
 
 import Data.ByteString (ByteString)
+import qualified Data.ByteString as BS
+import Data.ByteString.Base16 (decodeBase16)
 import Data.Serialize
 import Data.Word (Word32, byteSwap32)
 import Text.Printf (printf)
@@ -47,6 +50,12 @@ instance Serialize Hash where
     <*> getWord32be 
     <*> getWord32be 
     <*> getWord32be
+
+stringToHash :: String -> Maybe Hash
+stringToHash s = fmap hashFlipEndian $ 
+  case decodeBase16 . BS.pack . map (fromIntegral . fromEnum) $ s of
+    Left _ -> Nothing
+    Right bs -> either (const Nothing) Just $ decode bs
 
 mapHash :: (Word32 -> Word32) -> Hash -> Hash
 mapHash f (Hash h7 h6 h5 h4 h3 h2 h1 h0) = 

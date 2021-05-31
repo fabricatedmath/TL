@@ -43,6 +43,7 @@ create (Create numTowers numIters inFile) = do
   case mchain of
     Nothing -> putStrLn "Failed to create chain"
     Just chain -> do
+      putStrLn $ "Chain built, writing TimeLock Archive (TLA) file.."
       let outFile = takeBaseName inFile <.> "tla"
       writeTLA inFile outFile chain
       putStrLn $ "Wrote TLA file to " <> outFile
