@@ -8,7 +8,7 @@ import Control.Monad.State
 import qualified Data.ByteString as BS (readFile)
 import qualified Data.Serialize as S
 import Options.Applicative
-import System.Exit (exitFailure)
+import System.Exit (exitFailure, exitSuccess)
 import System.FilePath.Posix (dropExtension)
 
 import Crypto.TL
@@ -37,7 +37,7 @@ solveParser = Solve
   )
 
 solve :: Solve -> IO ()
-solve (Solve silent Nothing inFile) = do
+solve (Solve silent mresume inFile) = do
   header <- readTLAHeader inFile
   Just (name, hashFunc) <- getBestHashFunc
   putStrLn $ "Using " <> name <> " Hash Function" <> "\n"
@@ -46,46 +46,34 @@ solve (Solve silent Nothing inFile) = do
       numHashes = numHashesInChain chain
   unless silent $ putStrLn $ "Solving chain with " <> show numTowers <> " towers and " <> stringifyHash numHashes <> "\n"
   let outFile = tlaGetFileName header
-  result <- flip evalStateT 0 $ runExceptT $ do
-    hash <- getSolvingFunc numTowers silent hashFunc chain
+  (startingTower, chain') <- case mresume of
+    Nothing -> return (0, chain)
+    Just skippingHash -> do
+      mskippedChain <- resumeChainFrom hashFunc skippingHash chain
+      case mskippedChain of
+        Nothing -> do
+          putStrLn $ "Failed to find hash (" <> show skippingHash <> ") in chain, exiting.."
+          exitFailure
+        Just (_skippedTowers, Left solutionHash) -> do
+          putStrLn $ "Supplied hash was found to be the solving hash for the chain! Decrypting.."
+          decryptTLA inFile outFile solutionHash
+          unless silent $ putStrLn $ "Wrote decrypted file to " <> outFile
+          exitSuccess
+        Just (skippedTowers, Right skippedChain) -> do
+          putStrLn $ "Supplied hash was found in the chain! Skipping " <> show skippedTowers <> " towers.." <> "\n"
+          return (skippedTowers, skippedChain)
+  result <- flip evalStateT startingTower $ runExceptT $ do
+    hash <- getSolvingFunc numTowers silent hashFunc chain'
     liftIO $ do
       unless silent $ putStrLn $ "Chain solved with hash: " <> show hash <> "\n"
       unless silent $ putStrLn $ "Decrypting file.." <> "\n"
       decryptTLA inFile outFile hash
       unless silent $ putStrLn $ "Wrote decrypted file to " <> outFile
   case result of 
-    Left err -> putStrLn err
-    Right _hash -> return ()
-solve (Solve silent (Just hash) inFile) = do
-  header <- readTLAHeader inFile
-  Just (name, hashFunc) <- getBestHashFunc
-  putStrLn $ "Using " <> name <> " Hash Function" <> "\n"
-  let chain = tlaGetChainHead header
-      numTowers = numTowersInChain chain
-      numHashes = numHashesInChain chain
-  unless silent $ putStrLn $ "Solving chain with " <> show numTowers <> " towers and " <> stringifyHash numHashes <> "\n"
-  let outFile = tlaGetFileName header
-  mskippedChain <- resumeChainFrom hashFunc hash chain
-  case mskippedChain of
-    Nothing -> do
-      putStrLn $ "Failed to find hash (" <> show hash <> ") in chain, exiting.."
+    Left err -> do
+      putStrLn err
       exitFailure
-    Just (skippedTowers, Left solutionHash) -> do
-      putStrLn $ "Supplied hash was found to be the solving hash for the chain! Decrypting.."
-      decryptTLA inFile outFile hash
-      unless silent $ putStrLn $ "Wrote decrypted file to " <> outFile
-    Just (skippedTowers, Right chain) -> do
-      putStrLn $ "Supplied hash was found in the chain! Skipping " <> show skippedTowers <> " towers.." <> "\n"
-      result <- flip evalStateT skippedTowers $ runExceptT $ do
-        hash <- getSolvingFunc numTowers silent hashFunc chain
-        liftIO $ do
-          unless silent $ putStrLn $ "Chain solved with hash: " <> show hash <> "\n"
-          unless silent $ putStrLn $ "Decrypting file.." <> "\n"
-          decryptTLA inFile outFile hash
-          unless silent $ putStrLn $ "Wrote decrypted file to " <> outFile
-      case result of 
-        Left err -> putStrLn err
-        Right _hash -> return ()
+    Right _ -> return ()
 
 getSolvingFunc 
   :: (MonadError String m, MonadIO m, MonadState Int m) 
