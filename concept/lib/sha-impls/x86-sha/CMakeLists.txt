@@ -3,7 +3,9 @@ project (x86-sha)
 #message( WARNING "OS: ${CMAKE_HOST_SYSTEM_NAME}" )
 #message( WARNING "CPU: ${CMAKE_HOST_SYSTEM_PROCESSOR}" )
 
-set(X86 (${CMAKE_HOST_SYSTEM_PROCESSOR} MATCHES "x86_64"))
+message( ${CMAKE_HOST_SYSTEM_PROCESSOR} )
+
+set(X86 (${CMAKE_HOST_SYSTEM_PROCESSOR} MATCHES "x86_64") OR (${CMAKE_HOST_SYSTEM_PROCESSOR} MATCHES "AMD64"))
 
 if (${X86})
   set(c_source_files ${c_source_files} kernels/sha256_sse41_sha_x86.c)
