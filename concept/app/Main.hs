@@ -1,6 +1,9 @@
 module Main where
 
+import qualified Data.Text.IO as T
+
 import Options.Applicative
+import System.IO
 
 import TL.Create
 import TL.Solve
@@ -43,4 +46,6 @@ opts =
   )
 
 main :: IO ()
-main = customExecParser (prefs showHelpOnEmpty) opts >>= run
+main = do
+  hSetBuffering stdout LineBuffering
+  customExecParser (prefs showHelpOnEmpty) opts >>= run

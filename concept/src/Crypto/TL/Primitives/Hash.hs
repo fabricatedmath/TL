@@ -1,16 +1,23 @@
-module Crypto.TL.Primitives.Hash 
+{-# LANGUAGE DeriveGeneric #-}
+
+module Crypto.TL.Primitives.Hash
   ( Hash(..)
   , hashFlipEndian, randomHash, bsToHash, hashToBS
-  , stringToHash
+  , stringToHash, textToHash
   ) where
 
 import qualified Crypto.Random.Types as CRT (getRandomBytes)
 
+import Data.Text (Text)
+import qualified Data.Text as T
+
+import Control.DeepSeq
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import Data.ByteString.Base16 (decodeBase16)
 import Data.Serialize
 import Data.Word (Word32, byteSwap32)
+import GHC.Generics (Generic)
 import Text.Printf (printf)
 
 data Hash = 
@@ -23,7 +30,9 @@ data Hash =
   {-# UNPACK #-} !Word32
   {-# UNPACK #-} !Word32
   {-# UNPACK #-} !Word32
-  deriving Eq
+  deriving (Eq, Generic, Ord)
+
+instance NFData Hash 
 
 instance Show Hash where
   show hash = printf formatString h7 h6 h5 h4 h3 h2 h1 h0
@@ -50,6 +59,9 @@ instance Serialize Hash where
     <*> getWord32be 
     <*> getWord32be 
     <*> getWord32be
+
+textToHash :: Text -> Maybe Hash
+textToHash = stringToHash . T.unpack
 
 stringToHash :: String -> Maybe Hash
 stringToHash s = fmap hashFlipEndian $ 

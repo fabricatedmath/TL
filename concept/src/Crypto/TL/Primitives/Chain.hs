@@ -1,16 +1,21 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 module Crypto.TL.Primitives.Chain
   ( ChainHead(..)
   , createChain, solveChain, solveChain'
   , numTowersInChain, numHashesInChain
-  , resumeChainFrom
+  , resumeChainFrom, resumeChainFromMap
   ) where
 
 import Control.Monad (foldM, replicateM, unless)
 import Control.Monad.Except (MonadError(..))
 import Control.Monad.IO.Class (MonadIO, liftIO)
+import Control.Monad.Trans.State.Strict (StateT)
+import qualified Control.Monad.Trans.State.Strict as S 
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as M
 import Data.Serialize (Putter, Get, Serialize(..), getWord64le, putWord64le)
 
 import Crypto.TL.Primitives.BulkHashFunc
@@ -100,6 +105,27 @@ chainNumLinks = numLinks' 0
 
 getChainNumLinks :: Get Int
 getChainNumLinks = fromIntegral <$> getWord64le
+
+resumeChainFromMap :: Map Checksum Hash -> ChainHead -> IO (Int, Either Hash ChainHead)
+resumeChainFromMap hashMap chainHead@(ChainHead hashesPerTower _ startChecksum chain) =
+  S.execStateT (resumeChainFromHashes' hashesPerTower hashMap startChecksum chain) (0, Right chainHead)
+
+resumeChainFromHashes' :: Int -> Map Checksum Hash -> Checksum -> Chain -> StateT (Int, Either Hash ChainHead) IO ()
+resumeChainFromHashes' hashesPerTower hashMap = go 0 
+  where 
+    go :: Int -> Checksum -> Chain -> StateT (Int, Either Hash ChainHead) IO ()
+    go !i !checksum !Empty =
+      case M.lookup checksum hashMap of
+        Just hash -> S.put (i, Left hash)
+        Nothing -> return ()
+    go !i !checksum (Chain !encryptedHash !checksum' !chain') = do
+      case M.lookup checksum hashMap of
+        Just !hash -> 
+          let !chainHead = ChainHead hashesPerTower (decryptHash hash encryptedHash) checksum' chain'
+          in chainHead `seq` S.put (i, Right chainHead)
+        Nothing -> return ()
+      let i' = i + 1
+      i' `seq` go i' checksum' chain'
 
 resumeChainFrom :: HashFunc -> Hash -> ChainHead -> IO (Maybe (Int, Either Hash ChainHead))
 resumeChainFrom hashFunc hash (ChainHead hashesPerTower _ startChecksum chain) = do
