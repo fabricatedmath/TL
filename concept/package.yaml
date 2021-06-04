@@ -65,6 +65,15 @@ executables:
     dependencies:
     - concept
     - time
+  app2:
+    main:                Main.hs
+    source-dirs:         app2
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - concept
 
 tests:
   concept-test:

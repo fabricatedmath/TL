@@ -7,3 +7,5 @@ dogs*
 .vscode
 *.tla
 *.jpeg
+out*.txt
+hashes.txt
