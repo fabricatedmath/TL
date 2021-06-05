@@ -22,17 +22,17 @@ writeTLA
   -> (Hash, ChainHead)
   -> IO ()
 writeTLA inFile outFile (hash, chainHead) = do
-  let header = tlaHeader chainHead inFile
+  let headerWithChecksum = WithChecksum $ tlaHeader chainHead inFile
       encryptConduit = do
         nonce <- liftIO $ CRT.getRandomBytes 12
         let hashBS = hashToBS hash
         sourceFile inFile .| encrypt nonce hashBS
-  runConduitRes $ (sourcePut (put header) >> encryptConduit) .| sinkFile outFile
+  runConduitRes $ (sourcePut (put headerWithChecksum) >> encryptConduit) .| sinkFile outFile
 
 readTLAHeader 
   :: FilePath -- inFile
   -> IO TLAHeader
-readTLAHeader inFile = runConduitRes $ sourceFile inFile .| sinkGet get
+readTLAHeader inFile = fmap unWithChecksum . runConduitRes $ sourceFile inFile .| sinkGet get
 
 decryptTLA
   :: FilePath -- sourceFile
@@ -40,7 +40,7 @@ decryptTLA
   -> Hash
   -> IO ()
 decryptTLA inFile outFile hash = do
-  let sinkGetHeader = void $ sinkGet (get :: Get TLAHeader)
+  let sinkGetHeaderWithChecksum = void $ sinkGet (get :: Get (WithChecksum TLAHeader))
       decryptConduit = decrypt $ hashToBS hash
-  runConduitRes $ sourceFile inFile .| (sinkGetHeader >> decryptConduit) .| sinkFile outFile
+  runConduitRes $ sourceFile inFile .| (sinkGetHeaderWithChecksum >> decryptConduit) .| sinkFile outFile
 

@@ -1,7 +1,9 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Crypto.TL.Archive.Header 
   ( TLAHeader(..), MagicHash(..), TLAFileName(..), TLAText(..)
+  , WithChecksum(..)
   , tlaHeader, tlaGetFileName, tlaGetChainHead
   , magicHash, tlaShaHashMethod, tlaCurrentVersion
   ) where
@@ -14,6 +16,7 @@ import System.FilePath.Posix (takeFileName)
 
 import Crypto.TL.Primitives.Chain
 import Crypto.TL.Primitives.Hash
+import Crypto.TL.Primitives.HashFunc
 import Crypto.TL.Primitives.ShortHash
 
 tlaHeader :: ChainHead -> FilePath -> TLAHeader
@@ -59,6 +62,25 @@ instance Serialize TLAText where
   get = do
     len <- fromIntegral <$> getWord32le
     TLAText <$> replicateM len get
+
+newtype WithChecksum a = 
+  WithChecksum {
+    unWithChecksum :: a
+  }
+
+instance forall a. Serialize a => Serialize (WithChecksum a) where
+  put (WithChecksum a) = do
+    let bs = runPut (put a)
+    putByteString bs
+    put $ hashByteString bs
+  get = do
+    a <- get :: Get a
+    storedHash <- get
+    let calculatedHash = hashByteString (encode a)
+    when (storedHash /= calculatedHash) $ 
+      fail $ "Failed to match TLA Header Checksum: " <> show storedHash 
+        <> " with the expected: " <> show calculatedHash
+    return $ WithChecksum a
 
 instance Serialize TLAHeader where
   put (TLAHeader tlaMagicHash tlaVersion tlaHashMethod chainHead tlaFileName) = do
