@@ -8,7 +8,7 @@ import Data.Time
 import Options.Applicative
 
 import Crypto.TL
-import Crypto.TL.Util
+import Crypto.TL.Util.HashUnits
 
 import TL.Util
 

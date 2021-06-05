@@ -1,6 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Crypto.TL.Util 
+module Crypto.TL.Util.HashUnits
   ( stringifyHashRate, stringifyHash
   ) where
 

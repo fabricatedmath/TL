@@ -34,13 +34,13 @@ static uint8_t hexValueToBinary (uint8_t c1, uint8_t c2) {
 }
 
 // Read possible hashes found in file into buffer, call again to resume
-int HashFinder::readHexes(const int numHashesBufferSize, uint8_t* hashStrings, int &numHashesWritten) {
+// Returns number of hashes written to buffer in this pass
+int HashFinder::readHexes(const int numHashesBufferSize, uint8_t* hashStrings) {
   int numHashes = 0;
   do {
     for (; buf_in_read_loc < buf_in_read_len; buf_in_read_loc++) {
       if (numHashes == numHashesBufferSize) {
-        numHashesWritten = numHashes;
-        return 0;
+        return numHashes;
       }
       unsigned char c = buf_in[buf_in_read_loc];
       if (!isHex(c)) {
@@ -52,19 +52,19 @@ int HashFinder::readHexes(const int numHashesBufferSize, uint8_t* hashStrings, i
           for (int j = 0; j < 64; j+=8) {
             uint8_t w1 = hex_buf[(hex_buf_write_loc + j + 0) % 64];
             uint8_t w2 = hex_buf[(hex_buf_write_loc + j + 1) % 64];
-            hashStrings[numHashes*HASH_SIZE_BYTES + j/2 + 3] = hexValueToBinary(w1, w2);
+            hashStrings[numHashes*HASH_SIZE_BYTES + j/2 + 0] = hexValueToBinary(w1, w2);
 
             uint8_t w3 = hex_buf[(hex_buf_write_loc + j + 2) % 64];
             uint8_t w4 = hex_buf[(hex_buf_write_loc + j + 3) % 64];
-            hashStrings[numHashes*HASH_SIZE_BYTES + j/2 + 2] = hexValueToBinary(w3, w4);
+            hashStrings[numHashes*HASH_SIZE_BYTES + j/2 + 1] = hexValueToBinary(w3, w4);
 
             uint8_t w5 = hex_buf[(hex_buf_write_loc + j + 4) % 64];
             uint8_t w6 = hex_buf[(hex_buf_write_loc + j + 5) % 64];
-            hashStrings[numHashes*HASH_SIZE_BYTES + j/2 + 1] = hexValueToBinary(w5, w6);
+            hashStrings[numHashes*HASH_SIZE_BYTES + j/2 + 2] = hexValueToBinary(w5, w6);
 
             uint8_t w7 = hex_buf[(hex_buf_write_loc + j + 6) % 64];
             uint8_t w8 = hex_buf[(hex_buf_write_loc + j + 7) % 64];
-            hashStrings[numHashes*HASH_SIZE_BYTES + j/2 + 0] = hexValueToBinary(w7, w8);
+            hashStrings[numHashes*HASH_SIZE_BYTES + j/2 + 3] = hexValueToBinary(w7, w8);
           }
           numHashes++;
         } else {
@@ -75,8 +75,7 @@ int HashFinder::readHexes(const int numHashesBufferSize, uint8_t* hashStrings, i
     buf_in_read_loc = 0;
     buf_in_read_len = fread(buf_in, 1, CHUNK_SIZE, fp_s);
   } while (buf_in_read_loc != buf_in_read_len || !feof(fp_s));
-  numHashesWritten = numHashes;
-  return 0;
+  return numHashes;
 }
 
 int HashFinder::deinitialize() {
@@ -96,8 +95,8 @@ int initializeHashFinder(HashFinder* hf, const char* fp) {
   return hf->initialize(fp);
 }
 
-int readHexesHashFinder(HashFinder* hf, const int numHashesBufferSize, uint8_t* hashStrings, int &numHashesWritten) {
-  return hf->readHexes(numHashesBufferSize, hashStrings, numHashesWritten);
+int readHexesHashFinder(HashFinder* hf, const int numHashesBufferSize, uint8_t* hashStrings) {
+  return hf->readHexes(numHashesBufferSize, hashStrings);
 }
 
 int deinitializeHashFinder(HashFinder* hf) {

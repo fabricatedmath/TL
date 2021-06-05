@@ -23,7 +23,7 @@ public:
 
   int initialize(const char* fp);
 
-  int readHexes(const int numHashesBufferSize, uint8_t* hashStrings, int &numHashesWritten);
+  int readHexes(const int numHashesBufferSize, uint8_t* hashStrings);
 
   int deinitialize();
 
@@ -33,7 +33,7 @@ public:
 extern "C" {
   HashFinder* newHashFinder();
   int initializeHashFinder(HashFinder* hf, const char* fp);
-  int readHexesHashFinder(HashFinder* hf, const int numHashesBufferSize, uint8_t* hashStrings, int &numHashesWritten);
+  int readHexesHashFinder(HashFinder* hf, const int numHashesBufferSize, uint8_t* hashStrings);
   int deinitializeHashFinder(HashFinder* hf);
   void deleteHashFinder(HashFinder* hf);
 }

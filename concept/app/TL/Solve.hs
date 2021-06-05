@@ -3,21 +3,18 @@
 
 module TL.Solve where
 
-import Control.DeepSeq
-import Control.Monad.Except (MonadError(..), runExceptT)
+import Control.Monad.Except (ExceptT, MonadError(..), runExceptT)
 import Control.Monad.IO.Class
 import Control.Monad.State
-import qualified Data.ByteString as BS (readFile)
-import Data.Maybe (maybeToList)
-import qualified Data.Serialize as S
+import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Options.Applicative
 import System.Exit (exitFailure, exitSuccess)
-import System.FilePath.Posix (dropExtension)
 
 import Crypto.TL
 import Crypto.TL.Archive
-import Crypto.TL.Util
+import Crypto.TL.Util.HashUnits
+import Crypto.TL.Util.HashesFromFile
 
 import TL.Util
 
@@ -46,47 +43,73 @@ solveParser = Solve
   <> metavar "FILENAME"
   )
 
-trySkippingHashes :: HashFunc -> Maybe Hash -> Maybe FilePath -> ChainHead -> FilePath -> FilePath -> IO (Int, ChainHead)
+skippingHashesChecksumMap
+  :: MonadIO m
+  => HashFunc
+  -> Maybe Hash
+  -> Maybe FilePath
+  -> ExceptT String m (Map Checksum Hash)
+skippingHashesChecksumMap hashFunc mskippingHash mresumeFile = do
+  !checksumMapForHash <- getChecksumMapForHash mskippingHash
+  !checksumMapForFile <- getChecksumMapForFile mresumeFile
+  let !checksumMap = Map.union checksumMapForHash checksumMapForFile
+  return checksumMap
+    where getChecksumMapForHash Nothing = return Map.empty
+          getChecksumMapForHash (Just hash) = do
+            checksum <- liftIO $ calcChecksum hashFunc hash
+            return $ Map.singleton checksum hash
+
+          getChecksumMapForFile Nothing = return Map.empty
+          getChecksumMapForFile (Just resumeFile) = do
+            liftIO $ putStrLn $ "Getting hashes from file: " <> show resumeFile
+            !checksumMap <- getFilesChecksumMap hashFunc resumeFile
+            liftIO $ putStrLn $ "Found " <> show (Map.size checksumMap) <> " potential hashes in file" <> "\n"
+            return checksumMap
+
+trySkippingHashes 
+  :: MonadIO m
+  => HashFunc 
+  -> Maybe Hash 
+  -> Maybe FilePath 
+  -> ChainHead 
+  -> FilePath -- in file
+  -> FilePath -- out file
+  -> ExceptT String m (Int, ChainHead)
 trySkippingHashes _ Nothing Nothing chainHead _ _ = return (0, chainHead)
-trySkippingHashes hashFunc _ mresumeFile chainHead inFile outFile = do
-  putStrLn "Getting hashes.."
-  hashLength <- maybe (return 0) (fileToHashLength hashFunc) mresumeFile
-  putStrLn $ show hashLength
-  !checksumMap <- maybe (return Map.empty) (fileToChecksumMap hashFunc) mresumeFile
-  checksumMap `seq` putStrLn "Got Hashes"
-  mskippedChain <- resumeChainFromMap checksumMap chainHead
+trySkippingHashes hashFunc mskippingHash mresumeFile chainHead inFile outFile = do
+  !checksumMap <- skippingHashesChecksumMap hashFunc mskippingHash mresumeFile
+  mskippedChain <- liftIO $ resumeChainFromMap checksumMap chainHead
   case mskippedChain of
-    (0, _) -> do
-      putStrLn $ "Failed to find any supplied hashes in chain, exiting.."
-      exitFailure
-    (_skippedTowers, Left solutionHash) -> do
+    (0, _) -> throwError "Failed to find any supplied hashes in chain, exiting.."
+    (_skippedTowers, Left solutionHash) -> liftIO $ do
       putStrLn $ "A supplied hash was found to be the solving hash for the chain! Decrypting.." <> "\n"
       putStrLn $ "Solution hash is: " <> show solutionHash <> "\n"
       decryptTLA inFile outFile solutionHash
       putStrLn $ "Wrote decrypted file to " <> outFile
       exitSuccess
-    (skippedTowers, Right skippedChain) -> do
+    (skippedTowers, Right skippedChain) -> liftIO $ do
       putStrLn $ "A supplied hash was found in the chain! Skipping " <> show skippedTowers <> " towers.." <> "\n"
       return (skippedTowers, skippedChain)
 
 solve :: Solve -> IO ()
 solve (Solve silent mresume mresumeFile inFile) = do
-  header <- readTLAHeader inFile
+  tlaHeader <- readTLAHeader inFile
   Just (name, hashFunc) <- getBestHashFunc
   putStrLn $ "Using " <> name <> " Hash Function" <> "\n"
-  let !chain = tlaGetChainHead header
+  let !chain = tlaGetChainHead tlaHeader
       numTowers = numTowersInChain chain
       numHashes = numHashesInChain chain
-  chain `seq` (unless silent $ putStrLn $ "Solving chain with " <> show numTowers <> " towers and " <> stringifyHash numHashes <> "\n")
-  let outFile = tlaGetFileName header
-  (startingTower, chain') <- trySkippingHashes hashFunc mresume mresumeFile chain inFile outFile
-  result <- flip evalStateT startingTower $ runExceptT $ do
-    hash <- getSolvingFunc numTowers silent hashFunc chain'
-    liftIO $ do
-      unless silent $ putStrLn $ "Chain solved with hash: " <> show hash <> "\n"
-      unless silent $ putStrLn $ "Decrypting file.." <> "\n"
-      decryptTLA inFile outFile hash
-      unless silent $ putStrLn $ "Wrote decrypted file to " <> outFile
+  unless silent $ putStrLn $ "Solving chain with " <> show numTowers <> " towers and " <> stringifyHash numHashes <> "\n"
+  let outFile = tlaGetFileName tlaHeader
+  result <- runExceptT $ do
+    (startingTower, chain') <- trySkippingHashes hashFunc mresume mresumeFile chain inFile outFile
+    flip evalStateT startingTower $ do
+      hash <- getSolvingFunc numTowers silent hashFunc chain'
+      liftIO $ do
+        unless silent $ putStrLn $ "Chain solved with hash: " <> show hash <> "\n"
+        unless silent $ putStrLn $ "Decrypting file.." <> "\n"
+        decryptTLA inFile outFile hash
+        unless silent $ putStrLn $ "Wrote decrypted file to " <> outFile
   case result of 
     Left err -> do
       putStrLn err

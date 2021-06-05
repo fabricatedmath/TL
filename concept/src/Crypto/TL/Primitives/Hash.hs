@@ -17,6 +17,9 @@ import qualified Data.ByteString as BS
 import Data.ByteString.Base16 (decodeBase16)
 import Data.Serialize
 import Data.Word (Word32, byteSwap32)
+import Foreign.Marshal.Array
+import Foreign.Ptr
+import Foreign.Storable
 import GHC.Generics (Generic)
 import Text.Printf (printf)
 
@@ -31,6 +34,42 @@ data Hash =
   {-# UNPACK #-} !Word32
   {-# UNPACK #-} !Word32
   deriving (Eq, Generic, Ord)
+
+instance Storable Hash where
+  sizeOf _ = 32
+  alignment _ = 32
+  peek ptr = do
+    let 
+      wp1 = castPtr ptr
+      wp2 = advancePtr wp1 1
+      wp3 = advancePtr wp2 1
+      wp4 = advancePtr wp3 1
+      wp5 = advancePtr wp4 1
+      wp6 = advancePtr wp5 1
+      wp7 = advancePtr wp6 1
+      wp8 = advancePtr wp7 1 
+    Hash 
+      <$> peek wp1 <*> peek wp2 <*> peek wp3 <*> peek wp4
+      <*> peek wp5 <*> peek wp6 <*> peek wp7 <*> peek wp8
+
+  poke ptr (Hash w1 w2 w3 w4 w5 w6 w7 w8) = do
+    let 
+      wp1 = castPtr ptr
+      wp2 = advancePtr wp1 1
+      wp3 = advancePtr wp2 1
+      wp4 = advancePtr wp3 1
+      wp5 = advancePtr wp4 1
+      wp6 = advancePtr wp5 1
+      wp7 = advancePtr wp6 1
+      wp8 = advancePtr wp7 1
+    poke wp1 w1
+    poke wp2 w2
+    poke wp3 w3
+    poke wp4 w4
+    poke wp5 w5
+    poke wp6 w6
+    poke wp7 w7
+    poke wp8 w8
 
 instance NFData Hash 
 

@@ -1,7 +1,5 @@
 module Main where
 
-import qualified Data.Text.IO as T
-
 import Options.Applicative
 import System.IO
 

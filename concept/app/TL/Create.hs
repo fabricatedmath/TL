@@ -7,7 +7,7 @@ import TL.Util
 
 import Crypto.TL
 import Crypto.TL.Archive
-import Crypto.TL.Util
+import Crypto.TL.Util.HashUnits
 
 data Create = Create Int Int FilePath
     deriving Show

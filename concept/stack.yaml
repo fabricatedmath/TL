@@ -68,6 +68,7 @@ extra-lib-dirs:
 - lib/build/sha-impls/cuda-sha
 - lib/build/extern/cpu_features
 - lib/build/extern/cuew
+- lib/build/util
 #
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor

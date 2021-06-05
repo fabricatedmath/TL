@@ -9,3 +9,4 @@ dogs*
 *.jpeg
 out*.txt
 hashes.txt
+*_solve.txt
