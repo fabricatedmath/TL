@@ -11,7 +11,6 @@ module Crypto.TL.Archive.Header
 import Control.Monad (replicateM, when)
 import Data.Serialize
 import Data.Word (Word8)
-
 import System.FilePath.Posix (takeFileName)
 
 import Crypto.TL.Primitives.Chain

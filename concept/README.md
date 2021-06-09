@@ -1,7 +1,5 @@
 # concept
 
-Can build chains and solve them (See app/chain/Main.hs)
-
 # TODO
 
 * Output final hash for use
@@ -21,3 +19,6 @@ Can build chains and solve them (See app/chain/Main.hs)
 
 * store original filename in TLA file for option to use it for decryption
 
+* Instead of loading all hashes from file, send hashes from chain to check against file in O(n) maybe?
+
+can do `stack build` and then `stack exec ghci`
